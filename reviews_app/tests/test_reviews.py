@@ -27,10 +27,8 @@ class test_reviews_Customer(AuthenificatedAPITestCaseCustomer):
     @tag('happy')
     def test_list_filter_business_user_unknown(self):
         url = reverse('reviews-list')
-        response = self.client.get(url, {"business_user_id": 999999})
-        
+        response = self.client.get(url, {"business_user_id": 999999})        
         items = response.data
-        print(items)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(items), 0)
      
