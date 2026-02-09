@@ -1,6 +1,5 @@
 
-from django.forms import ValidationError
-from rest_framework.serializers import ModelSerializer, PrimaryKeyRelatedField
+from rest_framework.serializers import ModelSerializer, ValidationError, PrimaryKeyRelatedField
 
 from reviews_app.models import Review
 
@@ -18,6 +17,8 @@ class ReviewListSerializer(ModelSerializer):
         request = self.context["request"]
         user = request.user
         business_user = attrs.get("business_user")
+        if business_user is None:
+            raise ValidationError({"business_user": ["This field is required."]})
 
         if self.instance is None:
             if Review.objects.filter(reviewer=user, business_user=business_user).exists():
@@ -26,6 +27,6 @@ class ReviewListSerializer(ModelSerializer):
         
         return attrs
 
-    def create(self, validated_data):
+    # def create(self, validated_data):
 
-        return super().create(validated_data)
+    #     return super().create(validated_data)

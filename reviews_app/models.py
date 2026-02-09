@@ -15,7 +15,8 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    constraints = [models.UniqueConstraint(
-        fields=["reviewer", "business_user"],
-        name="unique_review_per_reviewer_business"
-    )]
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=["reviewer", "business_user"],
+            name="unique_review_per_reviewer_business"
+        )]

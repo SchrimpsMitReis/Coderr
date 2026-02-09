@@ -16,6 +16,7 @@ class test_single_profile_happy(AuthenificatedAPITestCaseCustomer):
         fields = ['first_name', 'last_name', 'location',
                   'tel', 'description', 'working_hours']
         response = self.client.get(self.url)
+        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for field in fields:
             self.assertNotEqual(response.data[f'{field}'], None)
