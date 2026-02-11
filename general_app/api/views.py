@@ -24,7 +24,6 @@ class BaseInfoView(APIView):
             "business_profile_count": business_profile_count,
             "offer_count": offer_count
         }
-
         return Response(data)
 
     def get_average_rating(self, reviews, count):

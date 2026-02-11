@@ -75,12 +75,9 @@ class OfferSerializerPostPatch(serializers.ModelSerializer):
             return data
 
     def validate_details(self, value):
-        # optional: erzwinge genau 3 und genau einmal basic/standard/premium
-
         request = self.context.get("request")
 
         if request and request.method == "POST":
-
             if len(value) != 3:
                 raise serializers.ValidationError(
                     "Es müssen genau 3 OfferDetails gesendet werden.")
@@ -90,12 +87,10 @@ class OfferSerializerPostPatch(serializers.ModelSerializer):
             if sorted(types) != ["basic", "premium", "standard"]:
                 raise serializers.ValidationError(
                     "offer_type muss genau: basic, standard, premium enthalten (je 1x).")
-
         return value
 
     def validate_user(self, attrs):
         user = self.context["request"].user
-
         try:
             profile = UserProfile.objects.get(user=user)
         except UserProfile.DoesNotExist:
@@ -105,8 +100,8 @@ class OfferSerializerPostPatch(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "permission": "business_required"
             })
-
         return attrs
+    
     def create(self, validated_data):
         details_data = validated_data.pop("details")
         offer = Offer.objects.create(**validated_data)
@@ -118,33 +113,29 @@ class OfferSerializerPostPatch(serializers.ModelSerializer):
         return offer
 
     def update(self, instance, validated_data):
-        details_data = validated_data.pop("details", None)
-
-        # 1) Offer-Felder normal updaten (title, image, description)
+        details = validated_data.pop("details", None)
         instance = super().update(instance, validated_data)
 
-        # 2) Falls details geschickt wurden: nur diese updaten (Teilmenge erlaubt)
-        if details_data is not None:
-            for d in details_data:
-                offer_type = d.get("offer_type")
-                if not offer_type:
-                    raise serializers.ValidationError(
-                        {"details": "offer_type is required for updating a detail."})
-
-                try:
-                    detail_obj = instance.details.get(offer_type=offer_type)
-                except OfferDetail.DoesNotExist:
-                    raise serializers.ValidationError(
-                        {"details": f"No OfferDetail with offer_type='{offer_type}' for this offer."})
-
-                # Felder patchen
-                for field, value in d.items():
-                    if field != "offer_type":
-                        setattr(detail_obj, field, value)
-                detail_obj.save()
-
+        if details is not None:
+            self._update_details(instance,details)
+        
         return instance
 
+    def _update_details(self, instance, details):
+        for d in details:
+            offer_type = d.get("offer_type")
+            if not offer_type:
+                raise serializers.ValidationError({"details": "offer_type is required for updating a detail."})
+            
+            try:
+                detail_obj = instance.details.get(offer_type=offer_type)
+            except OfferDetail.DoesNotExist:
+                raise serializers.ValidationError({"details": f"No OfferDetail with offer_type='{offer_type}' for this offer."})
+
+            for field, value in d.items():
+                if field != "offer_type":
+                    setattr(detail_obj, field, value)
+            detail_obj.save()
 
 class OfferSingleSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)

@@ -60,7 +60,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'Coderr.urls'
+ROOT_URLCONF = 'core.urls'
 
 CORS_ALLOW_CREDENTIALS = True
 
@@ -82,7 +82,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'Coderr.wsgi.application'
+WSGI_APPLICATION = 'core.wsgi.application'
 
 
 # Database

@@ -60,59 +60,22 @@ class UnauthenificatedAPITestCase(APITestCase):
         )
 
     def create_offer_detail_objects(self):
-        self.offer_detail_basic_1 = OfferDetail.objects.create(
-            offer = self.offer_1,
-            title = "MedienUndSo",
-            revisions = 3,
-            delivery_time_in_days = 5,
-            price = 100,
+        self.offer_detail_basic_1 = self.create_offer_detail(self.offer_1, "MedienUndSo",3, 5,100,"basic")
+        self.offer_detail_standard_1 = self.create_offer_detail(self.offer_1, "MedienUndSo",3, 5,200,"standard")
+        self.offer_detail_premium_1 = self.create_offer_detail(self.offer_1, "MedienUndSo",3, 5,400,"premium")
+        self.offer_detail_basic_2 = self.create_offer_detail(self.offer_2, "MedienUndSo",3, 5,100,"basic")
+        self.offer_detail_standard_2 = self.create_offer_detail(self.offer_2, "MedienUndSo",3, 5,200,"standard")
+        self.offer_detail_premium_2 = self.create_offer_detail(self.offer_2, "MedienUndSo",3, 5,400,"premium")
+
+    def create_offer_detail(self, offer, title, revisions, delivery, price, offerType):
+        return OfferDetail.objects.create(
+            offer = offer,
+            title = title,
+            revisions = revisions,
+            delivery_time_in_days = delivery,
+            price = price,
             features = ["Logo Design", "Käsekuchen"],
-            offer_type = "basic"
-        )
-        self.offer_detail_standard_1 = OfferDetail.objects.create(
-            offer = self.offer_1,
-            title = "MedienUndSo",
-            revisions = 3,
-            delivery_time_in_days = 5,
-            price = 200,
-            features = ["Logo Design", "Käsekuchen"],
-            offer_type = "standard"
-        )
-        self.offer_detail_premium_1 = OfferDetail.objects.create(
-            offer = self.offer_1,
-            title = "MedienUndSo",
-            revisions = 3,
-            delivery_time_in_days = 5,
-            price = 400,
-            features = ["Logo Design", "Käsekuchen"],
-            offer_type = "premium"
-        )
-        self.offer_detail_basic_2 = OfferDetail.objects.create(
-            offer = self.offer_2,
-            title = "MedienUndSo",
-            revisions = 3,
-            delivery_time_in_days = 5,
-            price = 100,
-            features = ["Logo Design", "Käsekuchen"],
-            offer_type = "basic"
-        )
-        self.offer_detail_standard_2 = OfferDetail.objects.create(
-            offer = self.offer_2,
-            title = "MedienUndSo",
-            revisions = 3,
-            delivery_time_in_days = 5,
-            price = 200,
-            features = ["Logo Design", "Käsekuchen"],
-            offer_type = "standard"
-        )
-        self.offer_detail_premium_2 = OfferDetail.objects.create(
-            offer = self.offer_2,
-            title = "MedienUndSo",
-            revisions = 3,
-            delivery_time_in_days = 5,
-            price = 400,
-            features = ["Logo Design", "Käsekuchen"],
-            offer_type = "premium"
+            offer_type = offerType
         )
 
     def create_order_objects(self):
@@ -145,7 +108,6 @@ class AuthenificatedAPITestCaseCustomer(UnauthenificatedAPITestCase):
         self.user = self.user_customer
         token, _ = Token.objects.get_or_create(user=self.user)
 
-        # 👇 DAS ist die Authentifizierung
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Token {token.key}"
         )
@@ -157,7 +119,6 @@ class AuthenificatedAPITestCaseBusiness(UnauthenificatedAPITestCase):
         self.user = self.user_business
         token, _ = Token.objects.get_or_create(user=self.user)
 
-        # 👇 DAS ist die Authentifizierung
         self.client.credentials(
             HTTP_AUTHORIZATION=f"Token {token.key}"
         )

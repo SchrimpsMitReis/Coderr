@@ -13,7 +13,7 @@ class ProfileSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         fields =[
-            'user_id', 
+            'user', 
             'username', 
             'first_name',
             'last_name',

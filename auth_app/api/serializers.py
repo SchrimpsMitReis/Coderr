@@ -25,23 +25,19 @@ class RegistrationSerializer(serializers.Serializer):
 
         return attrs
 
-    
 
     def create(self, validated_data):
         validated_data.pop("repeated_password")
-
         user = User.objects.create_user(
             username=validated_data["username"],
             email=validated_data["email"],
             password=validated_data["password"],
         )
-
         UserProfile.objects.create(
             user=user,
             email=validated_data["email"],
             type=validated_data.get("type", UserProfile.UserType.CUSTOMER),
         )
-
         return user
 
 

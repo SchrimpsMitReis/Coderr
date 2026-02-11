@@ -1,6 +1,6 @@
 from django.urls import include, path
 
-from core.api.views import BaseInfoView
+from general_app.api.views import BaseInfoView
 
 
 urlpatterns = [

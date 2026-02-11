@@ -16,14 +16,15 @@ class ReviewListSerializer(ModelSerializer):
     def validate(self, attrs):
         request = self.context["request"]
         user = request.user
-        business_user = attrs.get("business_user")
-        if business_user is None:
-            raise ValidationError({"business_user": ["This field is required."]})
 
         if self.instance is None:
+            business_user = attrs.get("business_user")
+
+            if business_user is None:
+                raise ValidationError({"business_user": ["This field is required."]})
+            
             if Review.objects.filter(reviewer=user, business_user=business_user).exists():
-                raise ValidationError(
-                    {"non_field_errors": ["Du hast diesen Anbieter bereits bewertet."]})
+                raise ValidationError({"non_field_errors": ["Du hast diesen Anbieter bereits bewertet."]})
         
         return attrs
 

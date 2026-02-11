@@ -1,6 +1,6 @@
 from rest_framework import status
 from django.urls import reverse
-from core.tests.base import AuthenificatedAPITestCaseCustomer, AuthenificatedAPITestCaseBusiness
+from general_app.tests.base import AuthenificatedAPITestCaseCustomer, AuthenificatedAPITestCaseBusiness
 from orders_app.models import Orders
 
 

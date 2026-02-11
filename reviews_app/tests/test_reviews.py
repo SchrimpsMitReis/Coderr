@@ -1,6 +1,6 @@
 from rest_framework import status
 from django.urls import reverse
-from core.tests.base import AuthenificatedAPITestCaseCustomer, AuthenificatedAPITestCaseBusiness
+from general_app.tests.base import AuthenificatedAPITestCaseCustomer, AuthenificatedAPITestCaseBusiness
 from orders_app.models import Orders
 from django.test import tag
 
@@ -32,8 +32,6 @@ class test_reviews_Customer(AuthenificatedAPITestCaseCustomer):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(items), 0)
     
-
-
     @tag('happy')
     def test_post_reviews(self):
         url = reverse('reviews-list')
@@ -67,8 +65,6 @@ class test_reviews_Customer(AuthenificatedAPITestCaseCustomer):
         }
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
 
 class test_reviews_Business(AuthenificatedAPITestCaseBusiness):
     @tag('unhappy')

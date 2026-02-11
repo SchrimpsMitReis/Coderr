@@ -36,12 +36,23 @@ class OfferViewSet(ModelViewSet):
         creator_id = self.request.query_params.get("creator_id")
         min_price = self.request.query_params.get("min_price")
         max_delivery_time = self.request.query_params.get("max_delivery_time")
-        
         queryset = queryset.annotate(
             min_price=Min("details__price"),
             max_delivery_time=Max("details__delivery_time_in_days"))
 
+        queryset = self._check_filters(queryset,creator_id, min_price,max_delivery_time)
+        # if creator_id:
+        #     queryset = queryset.filter(user=creator_id)
 
+        # if min_price:
+        #     queryset = queryset.filter(min_price__gte = min_price)
+
+        # if max_delivery_time:
+        #     queryset = queryset.filter(max_delivery_time__lte = max_delivery_time)
+
+        return queryset
+
+    def _check_filters(self, queryset, creator_id, min_price, max_delivery_time):
         if creator_id:
             queryset = queryset.filter(user=creator_id)
 
@@ -52,6 +63,7 @@ class OfferViewSet(ModelViewSet):
             queryset = queryset.filter(max_delivery_time__lte = max_delivery_time)
 
         return queryset
+
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

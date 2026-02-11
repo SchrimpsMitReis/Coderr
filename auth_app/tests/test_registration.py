@@ -3,13 +3,14 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from core.tests.base import UnauthenificatedAPITestCase
+from general_app.tests.base import UnauthenificatedAPITestCase
 
 
 class RegistrationHappyTest(UnauthenificatedAPITestCase):
 
     def setUp(self):
         super().setUp()
+        
     @tag('happy')
     def test_register_user_happy(self):
         url = reverse('user-registration')

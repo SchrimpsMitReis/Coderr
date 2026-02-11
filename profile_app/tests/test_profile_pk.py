@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 
 
-from core.tests.base import AuthenificatedAPITestCaseCustomer
+from general_app.tests.base import AuthenificatedAPITestCaseCustomer
 
 
 class test_single_profile_happy(AuthenificatedAPITestCaseCustomer):
@@ -16,7 +16,6 @@ class test_single_profile_happy(AuthenificatedAPITestCaseCustomer):
         fields = ['first_name', 'last_name', 'location',
                   'tel', 'description', 'working_hours']
         response = self.client.get(self.url)
-        print(response.data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for field in fields:
             self.assertNotEqual(response.data[f'{field}'], None)

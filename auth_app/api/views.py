@@ -14,7 +14,6 @@ class RegistrationView(APIView):
 
     def post(self, request):
         serializer = RegistrationSerializer(data = request.data)
-
         if serializer.is_valid():
             saved_account = serializer.save()
             token = Token.objects.create(user=saved_account)
@@ -22,19 +21,17 @@ class RegistrationView(APIView):
                 'token': token.key,
                 'username' : saved_account.username,
                 'email' : saved_account.email ,
-                'user_id' : saved_account.id
-            }
-
+                'user_id' : saved_account.id}
         else:
             data=serializer.errors
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
-        
         return Response(data, status=status.HTTP_201_CREATED)
     
  
 class LoginView(APIView):
     data = {}
     permission_classes = [AllowAny]
+
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)            
