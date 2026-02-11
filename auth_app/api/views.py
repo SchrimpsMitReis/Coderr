@@ -9,38 +9,73 @@ from rest_framework import status
 
 
 class RegistrationView(APIView):
+    """
+    Registriert einen neuen Benutzer.
+
+    - Zugriff: öffentlich (AllowAny)
+    - Erwartet: username, email, password, repeated_password, type
+    - Erstellt: User + UserProfile (im Serializer) und ein DRF Token
+    - Antwort (201): token, username, email, user_id
+    - Fehler (400): Validierungsfehler des Serializers
+    """
+
     permission_classes = [AllowAny]
-    data = {}
 
     def post(self, request):
-        serializer = RegistrationSerializer(data = request.data)
-        if serializer.is_valid():
-            saved_account = serializer.save()
-            token = Token.objects.create(user=saved_account)
-            data = {
-                'token': token.key,
-                'username' : saved_account.username,
-                'email' : saved_account.email ,
-                'user_id' : saved_account.id}
-        else:
-            data=serializer.errors
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-        return Response(data, status=status.HTTP_201_CREATED)
-    
- 
+        """
+        Erstellt einen Account und gibt ein Token zurück.
+
+        Hinweis:
+        - Validierung läuft im RegistrationSerializer (inkl. Passwortvergleich
+          und Eindeutigkeitschecks).
+        """
+        serializer = RegistrationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        user = serializer.save()
+        token = Token.objects.create(user=user)
+
+        return Response(self._build_auth_payload(user, token), status=status.HTTP_201_CREATED)
+
+    def _build_auth_payload(self, user, token):
+        """Formatiert die Standard-Antwort für Auth-Responses."""
+        return {
+            "token": token.key,
+            "username": user.username,
+            "email": user.email,
+            "user_id": user.id,
+        }
+
+
 class LoginView(APIView):
-    data = {}
+    """
+    Authentifiziert einen Benutzer und gibt sein Token zurück.
+
+    - Zugriff: öffentlich (AllowAny)
+    - Erwartet: username, password
+    - Antwort (200): token, username, email, user_id
+    - Fehler (400): ungültige Credentials (aus LoginSerializer)
+    """
+
     permission_classes = [AllowAny]
 
     def post(self, request):
+        """
+        Validiert Credentials und gibt das bestehende oder neue Token zurück.
+        """
         serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)            
+        serializer.is_valid(raise_exception=True)
+
         user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
-        data = {
-                "token": token.key,
-                "username" : user.username,
-                "email" : user.email,
-                "user_id" : user.id
-            }
-        return Response(data, status=status.HTTP_200_OK)
+
+        return Response(self._build_auth_payload(user, token), status=status.HTTP_200_OK)
+
+    def _build_auth_payload(self, user, token):
+        """Formatiert die Standard-Antwort für Auth-Responses."""
+        return {
+            "token": token.key,
+            "username": user.username,
+            "email": user.email,
+            "user_id": user.id,
+        }
