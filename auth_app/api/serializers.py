@@ -17,14 +17,11 @@ class RegistrationSerializer(serializers.Serializer):
     def validate(self, attrs):
         if attrs["password"] != attrs["repeated_password"]:
             raise serializers.ValidationError({"repeated_password": "passwords dont match"})
-
         if User.objects.filter(username=attrs["username"]).exists():
             raise serializers.ValidationError({"username": "already exists"})
         if User.objects.filter(email=attrs["email"]).exists():
             raise serializers.ValidationError({"email": "already exists"})
-
         return attrs
-
 
     def create(self, validated_data):
         validated_data.pop("repeated_password")
