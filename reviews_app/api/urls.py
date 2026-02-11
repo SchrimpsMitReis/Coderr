@@ -5,7 +5,3 @@ router = DefaultRouter()
 router.register(r"reviews", ReviewViewSet, basename="reviews")
 
 urlpatterns = router.urls
-
-
-# @tag('happy')
-# @tag('unhappy')

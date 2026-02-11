@@ -11,21 +11,10 @@ from orders_app.models import Orders
 class OrderSerializer(serializers.ModelSerializer):
     customer_user = serializers.PrimaryKeyRelatedField(read_only=True)
     business_user = serializers.PrimaryKeyRelatedField(read_only=True)
-
     class Meta:
         model = Orders
-        fields = [
-            "id", "customer_user", "business_user",
-            "title", "revisions", "delivery_time_in_days",
-            "price", "features", "offer_type",
-            "status", "created_at",
-        ]
-        read_only_fields = [
-            "id", "customer_user", "business_user",
-            "title", "revisions", "delivery_time_in_days",
-            "price", "features", "offer_type",
-            "status", "created_at",
-        ]
+        fields = ["id", "customer_user", "business_user","title", "revisions", "delivery_time_in_days","price", "features", "offer_type","status", "created_at",]
+        read_only_fields = ["id", "customer_user", "business_user","title", "revisions", "delivery_time_in_days","price", "features", "offer_type","status", "created_at"]
 
 
 class OrderUpdateSerializer(OrderSerializer):
@@ -49,7 +38,6 @@ class OrderCreateSerializer(OrderSerializer):
     def create(self, validated_data):
         request = self.context["request"]
         offer_detail = get_object_or_404(OfferDetail, id=validated_data.pop("offer_detail_id"))
-
         return Orders.objects.create(
             customer_user=request.user,
             business_user=offer_detail.offer.user,

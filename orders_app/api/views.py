@@ -44,7 +44,6 @@ class OrdersViewSet(ModelViewSet):
 class OrderCountView(APIView):
     
     def get(self, request, pk):
-        
         path = request.path
         searched_status = Orders.StatusType.COMPLETED
         prefix = 'completed_'

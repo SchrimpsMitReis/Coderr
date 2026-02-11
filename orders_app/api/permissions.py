@@ -20,26 +20,51 @@ class OrdersPermission(BasePermission):
         except UserProfile.DoesNotExist:
             return None
 
-    def has_permission(self, request, view):
-        user = request.user
-        if not user or not user.is_authenticated:
-            return False
+    def _is_profile_type_legal(self, user, view):
+        ptype = self._profile_type(user)
 
-        # DELETE nur staff/admin
         if view.action == "destroy":
             return user.is_staff or user.is_superuser
 
-        ptype = self._profile_type(user)
-
-        # Customer darf create
         if view.action == "create":
             return ptype == UserProfile.UserType.CUSTOMER
 
-        # Update/Patch grundsätzlich nur Business (Objektcheck kommt später)
+        if view.action in ["update", "partial_update"]:
+            return ptype == UserProfile.UserType.BUSINESS
+        
+        return True
+    
+    def _is_profile_type_legal(self, user, view):
+        ptype = self._profile_type(user)
+
+        if view.action == "destroy":
+            return user.is_staff or user.is_superuser
+
+        if view.action == "create":
+            return ptype == UserProfile.UserType.CUSTOMER
+
         if view.action in ["update", "partial_update"]:
             return ptype == UserProfile.UserType.BUSINESS
 
-        # GET/list/retrieve grundsätzlich erlaubt (Einschränkung über queryset/object)
+        return True
+
+    def has_permission(self, request, view):
+        user = request.user
+
+        if not user or not user.is_authenticated:
+            return False
+
+        ptype = self._profile_type(user)
+
+        if view.action == "destroy":
+            return user.is_staff or user.is_superuser
+
+        if view.action == "create":
+            return ptype == UserProfile.UserType.CUSTOMER
+
+        if view.action in ["update", "partial_update"]:
+            return ptype == UserProfile.UserType.BUSINESS
+
         return True
 
     def has_object_permission(self, request, view, obj):

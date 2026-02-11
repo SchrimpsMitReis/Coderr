@@ -17,33 +17,18 @@ class test_offers_customer(AuthenificatedAPITestCaseCustomer):
         url = reverse("offers-list")
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        data = response.data
-
-        for key in ["count", "next", "previous", "results"]:
-            self.assertIn(key, data)
-
-        for idx, offer in enumerate(data["results"], start=1):
-            for key in [
-                "user", "title", "image", "description",
-                "details", "min_price", "min_delivery_time", "user_details"
-            ]:
-                self.assertIn(key, offer, f"Offer #{idx} missing key: {key}")
-
-            for d_idx, detail in enumerate(offer["details"], start=1):
-                for key in ["id", "url"]:
-                    self.assertIn(
-                        key, detail, f"Offer #{idx} detail #{d_idx} missing key: {key}")
-
-            user_details = offer["user_details"]
-            for key in ["first_name", "last_name", "username"]:
-                self.assertIn(key, user_details,
-                              f"Offer #{idx} user_details missing key: {key}")
+        self._check_post_pagination(response)
+        self._check_post_results(response)
     
     @tag('unhappy')
     def test_post_offers_unhappy(self):
         url = reverse("offers-list")
-        data = {
+        data = self._post_offer_data()
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def _post_offer_data(self):
+        return {
             "title": "Grafikdesign-Paket",
             "image": None,
             "description": "Ein umfassendes Grafikdesign-Paket für Unternehmen.",
@@ -86,9 +71,28 @@ class test_offers_customer(AuthenificatedAPITestCaseCustomer):
                 }
             ]
         }
-        response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    def _check_post_results(self, response):
+        for idx, offer in enumerate(response.data["results"], start=1):
+            for key in [
+                "user", "title", "image", "description",
+                "details", "min_price", "min_delivery_time", "user_details"
+            ]:
+                self.assertIn(key, offer, f"Offer #{idx} missing key: {key}")
+
+            for d_idx, detail in enumerate(offer["details"], start=1):
+                for key in ["id", "url"]:
+                    self.assertIn(
+                        key, detail, f"Offer #{idx} detail #{d_idx} missing key: {key}")
+
+            user_details = offer["user_details"]
+            for key in ["first_name", "last_name", "username"]:
+                self.assertIn(key, user_details,
+                              f"Offer #{idx} user_details missing key: {key}")
+
+    def _check_post_pagination(self,response):
+        for key in ["count", "next", "previous", "results"]:
+            self.assertIn(key, response.data)
 
 class test_offers_business(AuthenificatedAPITestCaseBusiness):
 
@@ -147,43 +151,15 @@ class test_offers_business(AuthenificatedAPITestCaseBusiness):
     @tag('happy')
     def test_patch_offers_happy(self):
         url = reverse("offers-detail", kwargs={'pk': self.offer_1.id})
-        data = {
-            "title": "Updated Grafikdesign-Paket",
-            "details": [
-                {
-                    "title": "Basic Design Updated",
-                    "revisions": 3,
-                    "delivery_time_in_days": 6,
-                    "price": 120,
-                    "features": [
-                        "Logo Design",
-                        "Flyer"
-                    ],
-                    "offer_type": "basic"
-                }
-            ]
-        }
+        data = self._patch_offer_data()
         response = self.client.patch(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        for key in [
-            "id",
-            "title",
-            "image",
-            "description",
-            "details",
-        ]:
+        for key in ["id","title","image","description","details"]:
             self.assertIn(key, response.data)
 
         for i, detail in enumerate(response.data['details']):
-            for key in [
-                "id",
-                "title",
-                "revisions",
-                "delivery_time_in_days",
-                "price",
-                "features",
-                "offer_type"]:
+            for key in ["id","title","revisions","delivery_time_in_days","price","features","offer_type"]:
                 self.assertIn(key, response.data['details'][i])
                 
     @tag('happy')
@@ -198,3 +174,20 @@ class test_offers_business(AuthenificatedAPITestCaseBusiness):
         url = reverse('offerdetail')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def _patch_offer_data(self):
+        return {
+            "title": "Updated Grafikdesign-Paket",
+            "details": [
+                {
+                    "title": "Basic Design Updated",
+                    "revisions": 3,
+                    "delivery_time_in_days": 6,
+                    "price": 120,
+                    "features": [
+                        "Logo Design",
+                        "Flyer"
+                    ],
+                    "offer_type": "basic"
+                }]}
+

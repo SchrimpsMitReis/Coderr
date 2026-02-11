@@ -28,15 +28,12 @@ class ReviewPermission(BasePermission):
         if not user or not user.is_authenticated:
             return False
 
-        # GET list/retrieve: authenticated reicht
         if view.action in ["list", "retrieve"]:
             return True
 
-        # POST: nur customer
         if view.action == "create":
             return self._is_customer(user)
 
-        # PATCH/PUT/DELETE: grundsätzlich nur customer (Objektcheck kommt danach)
         if view.action in ["update", "partial_update", "destroy"]:
             return self._is_customer(user)
 
@@ -45,11 +42,9 @@ class ReviewPermission(BasePermission):
     def has_object_permission(self, request, view, obj: Review):
         user = request.user
 
-        # retrieve: authenticated und beteiligt? (du hast nix gefordert -> nur auth reicht)
         if view.action == "retrieve":
             return True
 
-        # update/patch/delete: nur Eigentümer (reviewer)
         if view.action in ["update", "partial_update", "destroy"]:
             return obj.reviewer_id == user.id
 

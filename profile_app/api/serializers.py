@@ -12,24 +12,10 @@ class ProfileSerializer(ModelSerializer):
     
     class Meta:
         model = UserProfile
-        fields =[
-            'user', 
-            'username', 
-            'first_name',
-            'last_name',
-            'file',
-            'location',
-            'tel',
-            'description',
-            'working_hours',
-            'type',
-            'email',
-            'created_at',
-            ]
+        fields =['user', 'username', 'first_name','last_name','file','location','tel','description','working_hours','type','email','created_at']
         
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user", {})
-
         if user_data:
             user = instance.user
             for attr, value in user_data.items():

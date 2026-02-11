@@ -28,6 +28,3 @@ class ReviewListSerializer(ModelSerializer):
         
         return attrs
 
-    # def create(self, validated_data):
-
-    #     return super().create(validated_data)
