@@ -3,10 +3,10 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from general_app.tests.base import UnauthenificatedAPITestCase
+from general_app.tests.base import UnauthenticatedAPITestCase
 
 
-class RegistrationHappyTest(UnauthenificatedAPITestCase):
+class RegistrationHappyTest(UnauthenticatedAPITestCase):
     """
     Happy-Path Tests für den Registration-Endpoint.
 
@@ -26,7 +26,7 @@ class RegistrationHappyTest(UnauthenificatedAPITestCase):
         self.assertIn("token", response.data)
         self.assertIn("user_id", response.data)
 
-class RegistrationUnhappyTest(UnauthenificatedAPITestCase):
+class RegistrationUnhappyTest(UnauthenticatedAPITestCase):
     """
     Unhappy-Path Tests für den Registration-Endpoint.
 

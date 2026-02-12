@@ -17,12 +17,27 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+"""
+Zentrale API-Routing-Konfiguration.
+
+Alle App-spezifischen API-Endpunkte werden unter `/api/` gebündelt.
+Jede App verwaltet ihre eigenen URL-Definitionen.
+
+Module:
+- auth_app: Registrierung & Login
+- profile_app: Benutzerprofile
+- reviews_app: Bewertungen
+- offers_app: Angebote
+- orders_app: Bestellungen
+- general_app: allgemeine Endpunkte (z.B. Meta/Health)
+"""
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('auth_app.api.urls')),
     path('api/', include('profile_app.api.urls')),
     path('api/', include('reviews_app.api.urls')),
-    path("api/", include("offers_app.api.urls")),
-    path("api/", include("orders_app.api.urls")),
-    path("api/", include("general_app.api.urls")),
+    path('api/', include('offers_app.api.urls')),
+    path('api/', include('orders_app.api.urls')),
+    path('api/', include('general_app.api.urls')),
 ]

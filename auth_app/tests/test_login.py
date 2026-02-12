@@ -3,14 +3,14 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 
-from general_app.tests.base import UnauthenificatedAPITestCase
+from general_app.tests.base import UnauthenticatedAPITestCase
 
 
 
 
 
 
-class LoginTestHappy(UnauthenificatedAPITestCase):
+class LoginTestHappy(UnauthenticatedAPITestCase):
     """
     Happy-Path Tests für den Login-Endpoint.
 
@@ -25,7 +25,7 @@ class LoginTestHappy(UnauthenificatedAPITestCase):
         mit bekanntem Passwort.
         """
         super().setUp()
-        self.user = self.create_user_object()
+        self.user = self._create_user()
 
     @tag('happy')
     def test_user_login(self):
@@ -50,7 +50,7 @@ class LoginTestHappy(UnauthenificatedAPITestCase):
             self.assertIn(key, response.data)
     
 
-class LoginTestUnhappy(UnauthenificatedAPITestCase):
+class LoginTestUnhappy(UnauthenticatedAPITestCase):
     """
     Unhappy-Path Tests für den Login-Endpoint.
 
@@ -60,7 +60,7 @@ class LoginTestUnhappy(UnauthenificatedAPITestCase):
 
     def setUp(self):
         super().setUp()
-        self.user = self.create_user_object()
+        self.user = self._create_user()
 
     @tag('unhappy')
     def test_user_login_wrong_password(self):
