@@ -1,279 +1,324 @@
-📦 Coderr – Backend API with Django REST Framework
+# Coderr – Backend API with Django REST Framework
 
-A backend API for a freelancer and service marketplace platform.
-Built with Django and Django REST Framework.
+Coderr is a backend API for a freelancer and service marketplace platform.
+The project is built with Django and Django REST Framework and models the typical workflows of such a platform: service providers create offers, customers place orders, and customers can leave reviews afterwards.
 
-Coderr models the core workflows of a typical service platform:
+This repository contains the backend only. A frontend can be implemented separately and connected via the REST API.
 
-Business users create offers
+## Overview
 
-Customers place orders
+The API supports users with different roles, a clear separation of responsibilities, and a fine-grained permission system.
+All interactions are handled via REST endpoints and secured using token-based authentication.
 
-Customers leave reviews
+The main focus of the project is clean architecture, understandable permission logic, filtering capabilities, and comprehensive happy-path and unhappy-path testing.
 
-Permissions enforce clear role separation
+## Features
 
-This repository contains the backend only.
+Coderr includes the following core features:
 
-🚀 Overview
+– Token-based authentication
+– Role system with Customer and Business users
+– Offer management for business users
+– Order creation and lifecycle handling
+– Review system with one review per customer and business
+– Action- and object-level permissions
+– Filtering and ordering via query parameters
+– Optional pagination
+– Extensive automated test coverage
 
-Coderr provides:
+## Project Structure
 
-A clear role system (Customer / Business)
+The project is split into multiple Django apps, each covering a specific domain:
 
-Token-based authentication
+auth_app contains authentication and user profiles
+offers_app manages offers and offer details
+orders_app handles order creation and updates
+reviews_app implements the review system
+profile_app exposes profile-related endpoints
+core contains shared utilities, base tests and helpers
 
-Object-level and action-level permission logic
+## Installation
 
-Filtering and ordering via query parameters
+First, clone the repository and switch to the project directory:
 
-Optional pagination
+`git clone https://github.com/SchrimpsMitReis/Coderr.git
+cd Coderr`
 
-Comprehensive automated test coverage
+Create and activate a virtual environment:
 
-The project focuses on:
-
-Clean REST architecture
-
-Realistic business rules
-
-Separation of concerns
-
-Maintainable and testable code
-
-🧩 Features
-
-🔐 Token-based authentication
-
-👥 Role system (Customer & Business users)
-
-📝 Offer management
-
-📦 Order lifecycle handling
-
-⭐ Review system (1 review per customer & business)
-
-🛡️ Custom permissions (has_permission & has_object_permission)
-
-🔎 Filtering & ordering
-
-📄 Optional pagination
-
-🧪 Extensive happy-path & unhappy-path testing
-
-🏗 Project Structure
-
-The project is split into domain-specific Django apps:
-
-auth_app       → authentication & user profiles
-offers_app     → offers and offer details
-orders_app     → order workflow & status handling
-reviews_app    → review system
-profile_app    → profile endpoints
-core           → shared utilities, base tests & helpers
-
-⚙️ Installation
-1️⃣ Clone repository
-git clone https://github.com/SchrimpsMitReis/Coderr.git
-cd Coderr
-
-2️⃣ Create virtual environment
 python -m venv env
+source env/bin/activate       # macOS / Linux
+env\Scripts\activate          # Windows
 
 
-Activate:
+### Install dependencies:
 
-# macOS / Linux
-source env/bin/activate
+`pip install -r requirements.txt`
 
-# Windows
-env\Scripts\activate
 
-3️⃣ Install dependencies
-pip install -r requirements.txt
+### Run database migrations:
 
-4️⃣ Run migrations
 python manage.py makemigrations
 python manage.py migrate
 
-5️⃣ (Optional) Create superuser
+
+Optionally create a superuser for the Django admin interface:
+
 python manage.py createsuperuser
 
-6️⃣ Start development server
+
+Start the development server:
+
 python manage.py runserver
 
 
-API runs at:
+The API will then be available at http://127.0.0.1:8000/.
 
-http://127.0.0.1:8000/
+Authentication
 
-🔑 Authentication
-
-The API uses Token Authentication.
-
-After login, include the token in every authenticated request:
+The API uses token-based authentication.
+After logging in, a token is returned and must be sent with all authenticated requests:
 
 Authorization: Token <your_token>
 
-🔐 API Logic & Permissions
+API Logic and Permissions
 
-Access rules are strictly enforced:
+Access to the API is strictly controlled:
 
-Customers
+Customers are allowed to create orders and write reviews.
+Business users can create and update offers and change the status of orders they are involved in.
+Customers can only update or delete reviews they created themselves.
+Both roles can only access objects they are involved in.
+Delete operations are restricted to staff or admin users.
 
-Can create orders
+Permissions are implemented using custom permission classes and make use of both has_permission and has_object_permission.
 
-Can write reviews
+Reviews – Special Rules
 
-Can update/delete their own reviews
+Each customer is allowed to create only one review per business user.
+This rule is enforced on two levels:
 
-Business Users
+– Serializer validation with a user-friendly error message
+– A database-level unique constraint to prevent race conditions
 
-Can create & update offers
+The reviewer field is never accepted from client input and is always set automatically from the authenticated user.
 
-Can change status of their involved orders
+Filtering, Ordering and Pagination
 
-Both Roles
+The API uses django-filter and DRF’s ordering backend.
+Filters are applied exclusively via query parameters, for example:
 
-Can only access objects they are involved in
-
-Delete Operations
-
-Restricted to staff or admin users
-
-Permissions are implemented via custom classes using:
-
-has_permission
-
-has_object_permission
-
-⭐ Reviews – Special Rules
-
-Each customer can review a business user only once.
-
-Enforced on two levels:
-
-Serializer validation (user-friendly error)
-
-Database-level UniqueConstraint (race condition protection)
-
-The reviewer field is always set from request.user.
-
-🔎 Filtering, Ordering & Pagination
-
-Coderr uses:
-
-django-filter
-
-DRF OrderingFilter
-
-Example queries:
-
-GET /reviews/?business_user_id=3
+GET /reviews/?business_user=3
 GET /reviews/?ordering=-rating
 
 
-Filtering is separated from business logic.
+Filtering logic is clearly separated from business logic.
+Default ordering ensures consistent pagination results.
 
-Default ordering ensures stable results.
+Testing
 
-🧪 Testing
+The project contains extensive automated tests covering:
 
-Comprehensive automated test coverage includes:
-
-Happy-path scenarios
-
-Unhappy-path scenarios
-
-Permission enforcement
-
-Filtering & ordering behavior
+– Happy-path scenarios
+– Unhappy-path scenarios
+– Permission enforcement
+– Filtering and ordering behavior
 
 Run all tests:
 
 python manage.py test
 
 
-Run specific tests:
+Run only selected tests:
+
+python manage.py test -k happy
+python manage.py test -k unhappy
+
+
+Or using tags:
 
 python manage.py test --tag=happy
 python manage.py test --tag=unhappy
 
-🎯 Project Goal
+Project Goal
 
-Coderr is designed as a portfolio & learning project with focus on:
+Coderr is designed as a learning and portfolio project.
+The main goals are:
 
-Clean architecture
+– Clean REST architecture
+– Realistic business rules
+– Strong separation of concerns
+– Testable and maintainable code
+– Clear and transparent permission logic
 
-Strong separation of concerns
+The project can be used as a reference implementation for larger Django REST Framework backends or extended as a foundation for future ideas.
 
-Real-world permission logic
-
-Structured, testable backend systems
-
-It can serve as a foundation for larger DRF projects.
-
-👨‍💻 Author
+Author
 
 Roman Schröder
 Backend & API Development
 
-🇩🇪 Coderr – Backend API mit Django REST Framework
 
-(Deutsche Version für Portfolio oder Recruiter)
 
-Coderr ist eine Backend-API für eine Freelancer-Marktplatzplattform, entwickelt mit Django und Django REST Framework.
 
-Die Anwendung bildet typische Marktplatzprozesse ab:
+Coderr – Backend API mit Django REST Framework
 
-Anbieter erstellen Angebote
+Coderr ist eine Backend-API für eine Freelancer- bzw. Marktplatz-Plattform.
+Das Projekt wurde mit Django und Django REST Framework umgesetzt und bildet die typische Logik einer Plattform ab, auf der Anbieter Services einstellen können, Kunden Bestellungen auslösen und anschließend Bewertungen abgeben.
 
-Kunden platzieren Bestellungen
+Das Repository enthält ausschließlich das Backend. Ein mögliches Frontend kann unabhängig davon angebunden werden.
 
-Kunden hinterlassen Bewertungen
+Überblick
 
-Das Repository enthält ausschließlich das Backend.
+Die API unterstützt Benutzer mit unterschiedlichen Rollen, eine klare Trennung von Verantwortlichkeiten und ein fein abgestuftes Berechtigungssystem.
+Alle Zugriffe erfolgen über REST-Endpoints, abgesichert durch Token-Authentifizierung.
 
-🧠 Fokus des Projekts
+Im Fokus des Projekts stehen saubere Architektur, verständliche Permissions, Filterlogik sowie umfangreiche Happy- und Unhappy-Tests.
 
-Saubere REST-Architektur
+Features
 
-Durchdachte Rollen- & Permission-Logik
+Coderr bietet unter anderem:
 
-Objekt- und Aktions-Permissions
+– Token-basierte Authentifizierung
+– Rollenmodell mit Customer und Business-User
+– Angebotsverwaltung für Business-User
+– Bestellabwicklung für Kunden
+– Bewertungssystem mit Einschränkung auf eine Bewertung pro Kunde und Anbieter
+– Objekt- und Aktions-Permissions
+– Filter, Ordering und optionale Pagination
+– Umfangreiche automatisierte Tests
 
-Strukturierter, testbarer Code
+Projektstruktur
 
-Klare Trennung von Business-Logik und Filterlogik
+Das Projekt ist in mehrere Django-Apps aufgeteilt, die jeweils eine klar abgegrenzte Domäne abbilden:
 
-🔐 Sicherheitskonzept
+auth_app enthält Authentifizierung und Benutzerprofile
+offers_app verwaltet Angebote und Angebotsdetails
+orders_app bildet den Bestellprozess ab
+reviews_app enthält das Bewertungssystem
+profile_app stellt Profilinformationen bereit
+core enthält gemeinsame Utilities, Base-Tests und Hilfsklassen
 
-Token-Authentifizierung
+Installation
 
-Objektbezogene Zugriffsprüfung
+Zunächst das Repository klonen und in das Projektverzeichnis wechseln:
 
-Rollenbasierte Rechte
+git clone https://github.com/SchrimpsMitReis/Coderr.git
+cd Coderr
 
-Doppelte Absicherung kritischer Regeln (Serializer + DB Constraint)
 
-🧪 Tests
+Danach eine virtuelle Umgebung anlegen und aktivieren:
+
+python -m venv env
+source env/bin/activate       # macOS / Linux
+env\Scripts\activate          # Windows
+
+
+Abhängigkeiten installieren:
+
+pip install -r requirements.txt
+
+
+Migrationen ausführen und die Datenbank initialisieren:
+
+python manage.py makemigrations
+python manage.py migrate
+
+
+Optional einen Superuser für das Admin-Interface erstellen:
+
+python manage.py createsuperuser
+
+
+Anschließend den Entwicklungsserver starten:
+
+python manage.py runserver
+
+
+Die API ist danach unter http://127.0.0.1:8000/ erreichbar.
+
+Authentifizierung
+
+Die API verwendet Token-Authentifizierung.
+Nach dem Login wird ein Token ausgegeben, der bei weiteren Requests im Authorization-Header mitgesendet wird.
+
+Authorization: Token <dein_token>
+
+API-Logik und Permissions
+
+Die Zugriffskontrolle ist strikt geregelt:
+
+Customer dürfen Bestellungen erstellen und Bewertungen schreiben.
+Business-User dürfen Angebote erstellen und bearbeiten sowie den Status von Bestellungen ändern, an denen sie beteiligt sind.
+Customer dürfen nur ihre eigenen Reviews bearbeiten oder löschen.
+Beide Rollen sehen ausschließlich Objekte, an denen sie beteiligt sind.
+Löschoperationen sind auf Staff- oder Admin-Benutzer beschränkt.
+
+Die Permissions sind in eigene Permission-Klassen ausgelagert und nutzen sowohl has_permission als auch has_object_permission.
+
+Reviews – Besonderheiten
+
+Ein Kunde darf einen Anbieter nur einmal bewerten.
+Diese Regel wird doppelt abgesichert:
+
+– durch Serializer-Validation (saubere Fehlermeldung)
+– durch einen Datenbank-Constraint (UniqueConstraint), um Race-Conditions zu verhindern
+
+Der reviewer wird niemals aus dem Request übernommen, sondern automatisch aus dem eingeloggten Benutzer gesetzt.
+
+Filter, Ordering und Pagination
+
+Die API nutzt django-filter und DRF-Ordering.
+Filter werden ausschließlich über Query-Parameter gesteuert, zum Beispiel:
+
+GET /reviews/?business_user=3
+GET /reviews/?ordering=-rating
+
+
+Filterspezifikation und Business-Logik sind klar getrennt.
+Ordering erfolgt stabil über definierte Default-Felder, um inkonsistente Pagination zu vermeiden.
+
+Tests
 
 Das Projekt enthält umfangreiche automatisierte Tests für:
 
-Happy-Paths
+– Happy-Paths
+– Unhappy-Paths
+– Permissions
+– Filter- und Ordering-Logik
 
-Unhappy-Paths
+Alle Tests ausführen:
 
-Permissions
+python manage.py test
 
-Filterlogik
 
-💡 Einsatzmöglichkeiten
+Gezielt nur bestimmte Tests ausführen:
 
-Coderr kann verwendet werden als:
+python manage.py test -k happy
+python manage.py test -k unhappy
 
-Referenzprojekt für DRF-Architektur
 
-Lernprojekt für komplexe Permission-Systeme
+Oder per Tagging:
 
-Grundlage für weitere Erweiterungen
+python manage.py test --tag=happy
+python manage.py test --tag=unhappy
+
+Ziel des Projekts
+
+Coderr ist als Lern- und Portfolio-Projekt konzipiert.
+Der Fokus liegt auf:
+
+– sauberer REST-Architektur
+– realistischen Business-Regeln
+– gut testbarem Code
+– verständlicher Rollen- und Rechtevergabe
+
+Das Projekt eignet sich als Grundlage für eigene Erweiterungen oder als Referenz für komplexere DRF-Backends.
+
+Autor
+
+Roman Schröder
+Backend & API Development
+
+
+
