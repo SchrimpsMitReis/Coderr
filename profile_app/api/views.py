@@ -9,16 +9,16 @@ from profile_app.api.serializers import ProfileSerializer
 
 class ProfileDetailView(RetrieveUpdateAPIView):
     """
-    Detail- und Update-Endpoint für ein einzelnes UserProfile.
+    Detail and update endpoint for a single UserProfile.
 
-    Funktionen:
-    - GET     -> Profilinformationen abrufen
-    - PATCH   -> Profil teilweise aktualisieren
-    - PUT     -> Profil vollständig aktualisieren
+    Supported operations:
+    - GET   → Retrieve profile information
+    - PATCH → Partially update the profile
+    - PUT   → Fully update the profile
 
-    Zugriff:
-    - Standardmäßig über pk (Primary Key)
-    - Verwendet ProfileSerializer
+    Access:
+    - Lookup via pk (Primary Key)
+    - Uses ProfileSerializer
     """
 
     queryset = UserProfile.objects.all()
@@ -28,11 +28,11 @@ class ProfileDetailView(RetrieveUpdateAPIView):
 
 class CustomerListView(ListAPIView):
     """
-    Listet alle Profile vom Typ CUSTOMER.
+    Lists all profiles of type CUSTOMER.
 
-    Hinweis:
-    - Keine Pagination (pagination_class = None)
-    - Verwendet ProfileSerializer
+    Notes:
+    - Pagination is disabled (pagination_class = None)
+    - Uses ProfileSerializer
     """
 
     pagination_class = None
@@ -40,7 +40,7 @@ class CustomerListView(ListAPIView):
 
     def get_queryset(self):
         """
-        Liefert ausschließlich Customer-Profile.
+        Returns only Customer profiles.
         """
         return UserProfile.objects.filter(
             type=UserProfile.UserType.CUSTOMER
@@ -49,11 +49,11 @@ class CustomerListView(ListAPIView):
 
 class BusinessListView(ListAPIView):
     """
-    Listet alle Profile vom Typ BUSINESS.
+    Lists all profiles of type BUSINESS.
 
-    Hinweis:
-    - Keine Pagination (pagination_class = None)
-    - Verwendet ProfileSerializer
+    Notes:
+    - Pagination is disabled (pagination_class = None)
+    - Uses ProfileSerializer
     """
 
     pagination_class = None
@@ -61,7 +61,7 @@ class BusinessListView(ListAPIView):
 
     def get_queryset(self):
         """
-        Liefert ausschließlich Business-Profile.
+        Returns only Business profiles.
         """
         return UserProfile.objects.filter(
             type=UserProfile.UserType.BUSINESS

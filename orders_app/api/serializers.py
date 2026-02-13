@@ -9,12 +9,14 @@ from orders_app.models import Orders
 
 class OrderSerializer(serializers.ModelSerializer):
     """
-    Read-Serializer für Orders.
+    Read serializer for Orders.
 
-    Zweck:
-    - Liefert eine vollständige Order-Darstellung für List/Retrieve/Response nach Create.
-    - Alle Felder sind read-only, da Orders aus OfferDetails "gesnapshottet" werden und
-      nicht frei vom Client geändert werden sollen (Ausnahme: Status via Update-Serializer).
+    Purpose:
+    - Returns the complete Order representation for list/retrieve endpoints.
+    - Used as response serializer after order creation.
+    - All fields are read-only because Orders represent a snapshot
+      of OfferDetail data and must not be modified by the client
+      (exception: status via OrderUpdateSerializer).
     """
 
     customer_user = serializers.PrimaryKeyRelatedField(read_only=True)
@@ -35,23 +37,28 @@ class OrderSerializer(serializers.ModelSerializer):
             "status",
             "created_at",
         ]
-        # Gleiche Liste wie fields -> übersichtlich und eindeutig read-only
+
         read_only_fields = fields
 
 
 class OrderUpdateSerializer(OrderSerializer):
     """
-    Update-Serializer für Orders.
+    Update serializer for Orders.
 
-    Zweck:
-    - Erlaubt ausschließlich das Aktualisieren des Status (z.B. in_progress -> completed).
-    - Alle anderen Felder bleiben read-only und werden vom Parent-Serializer geerbt.
+    Purpose:
+    - Allows updating only the order status
+      (e.g., from in_progress → completed).
+    - All other fields remain read-only and are inherited
+      from the parent serializer.
     """
 
-    status = serializers.ChoiceField(choices=Orders.StatusType.choices, required=True)
+    status = serializers.ChoiceField(
+        choices=Orders.StatusType.choices,
+        required=True
+    )
 
     class Meta(OrderSerializer.Meta):
-        # status ist hier bewusst NICHT read-only
+
         read_only_fields = [
             "id",
             "customer_user",
@@ -68,32 +75,36 @@ class OrderUpdateSerializer(OrderSerializer):
 
 class OrderCreateSerializer(OrderSerializer):
     """
-    Create-Serializer für Orders.
+    Create serializer for Orders.
 
     Input:
-    - offer_detail_id (write-only): Referenz auf das gewünschte OfferDetail (basic/standard/premium)
+    - offer_detail_id (write-only):
+        References the selected OfferDetail (basic/standard/premium).
 
-    Verhalten:
-    - Erstellt eine Order als Snapshot der OfferDetail-Daten (Titel, Preis, Lieferzeit, Features, offer_type).
-    - Setzt den Status initial auf IN_PROGRESS.
-    - `customer_user` wird aus request.user übernommen, `business_user` aus dem OfferDetail-Angebot.
+    Behavior:
+    - Creates an Order as a snapshot of the referenced OfferDetail.
+    - Copies title, price, delivery time, features, and offer_type.
+    - Sets the initial status to IN_PROGRESS.
+    - customer_user is derived from request.user.
+    - business_user is derived from the Offer owner.
     """
 
     offer_detail_id = serializers.IntegerField(write_only=True)
 
     class Meta(OrderSerializer.Meta):
-        # Output bleibt wie OrderSerializer; zusätzlich wird offer_detail_id als Input akzeptiert
         fields = OrderSerializer.Meta.fields + ["offer_detail_id"]
 
     def create(self, validated_data):
         """
-        Erzeugt die Order aus dem referenzierten OfferDetail.
+        Creates an Order based on the referenced OfferDetail.
 
-        Hinweis:
-        - offer_detail_id wird aus validated_data entfernt, da es kein Model-Feld ist.
-        - get_object_or_404 liefert 404, wenn offer_detail_id ungültig ist.
+        Notes:
+        - 'offer_detail_id' is removed from validated_data
+          because it is not a model field.
+        - get_object_or_404 returns HTTP 404 if the ID is invalid.
         """
         request = self.context["request"]
+
         offer_detail = get_object_or_404(
             OfferDetail,
             id=validated_data.pop("offer_detail_id"),
@@ -114,14 +125,15 @@ class OrderCreateSerializer(OrderSerializer):
 
 class OrderCountSerializer(serializers.ModelSerializer):
     """
-    Allgemeiner Serializer (z.B. für Debug/Stats).
+    Generic serializer (e.g., useful for debugging or statistics).
 
-    Clean-Code-Hinweis:
-    - Wenn du wirklich alle Felder willst, nutze fields = "__all__" (string),
-      nicht ['__all__'] (liste).
+    Clean Code Note:
+    - If you truly want all model fields, use:
+        fields = "__all__"
+      not:
+        ['__all__']
     """
 
     class Meta:
         model = Orders
         fields = "__all__"
-

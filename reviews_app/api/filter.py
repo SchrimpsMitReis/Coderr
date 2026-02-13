@@ -4,16 +4,15 @@ from reviews_app.models import Review
 
 class ReviewFilter(django_filters.FilterSet):
     """
-    FilterSet für Review-Listenendpunkte.
-
-    Ermöglicht Filterung nach:
-    - business_user_id  -> Reviews zu einem bestimmten Business
-    - reviewer_id       -> Reviews eines bestimmten Reviewers (Customers)
-
-    Verwendungsbeispiel:
+    FilterSet for review list endpoints.
+    
+    Allows filtering by:
+    - business_user_id → Reviews for a specific Business user
+    - reviewer_id      → Reviews written by a specific reviewer (Customer)
+    
+    Example usage:
         /api/reviews/?business_user_id=5
-        /api/reviews/?reviewer_id=12
-    """
+        /api/reviews/?reviewer_id=12    """
 
     business_user_id = django_filters.NumberFilter(
         field_name="business_user_id"

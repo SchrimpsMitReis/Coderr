@@ -12,13 +12,12 @@ from orders_app.models import Orders
 
 class TestOrderCount(AuthenticatedAPITestCaseCustomer):
     """
-    Tests für die Count-Endpunkte.
-
-    Erwartung (auf Basis der Testdaten aus dem BaseCase):
-    - Es existieren 2 Orders im Status IN_PROGRESS für den Business-User.
-    - Es existieren 0 Orders im Status COMPLETED.
-    """
-
+        Tests for the Order count endpoints.
+    
+        Expected behavior (based on test data from the BaseTestCase):
+        - There are 2 Orders in status IN_PROGRESS for the Business user.
+        - There are 0 Orders in status COMPLETED.
+        """    
     def test_inprogress_order_count_returns_correct_value(self):
         url = reverse("order-count-inprogress", kwargs={"pk": self.user_business.id})
         response = self.client.get(url)

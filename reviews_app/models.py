@@ -1,21 +1,19 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
-# Create your models here.
 
 
 class Review(models.Model):
     """
-    Bewertungsmodell für Business-User.
+    Review model for Business users.
 
-    Beziehungen:
-    - business_user: Der Anbieter, der bewertet wird
-    - reviewer: Der User (i.d.R. Customer), der die Bewertung abgibt
+    Relationships:
+    - business_user: The provider being reviewed
+    - reviewer: The user (typically a Customer) who submits the review
 
-    Regeln:
-    - Ein Reviewer darf ein Business nur einmal bewerten
-      (UniqueConstraint in Meta)
-    """
+    Rules:
+    - A reviewer may review a specific Business user only once
+      (enforced via a UniqueConstraint in Meta)    """
 
     business_user = models.ForeignKey(
         User,
@@ -29,9 +27,7 @@ class Review(models.Model):
         related_name="written_reviews",
     )
 
-    # Bewertung (z.B. 1–5 Sterne)
     rating = models.IntegerField(
-        # Optional, aber sinnvoll:
         validators=[
             MinValueValidator(1),
             MaxValueValidator(5),
@@ -44,10 +40,6 @@ class Review(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        """
-        Stellt sicher:
-        - Ein Reviewer kann ein Business nur einmal bewerten.
-        """
         constraints = [
             models.UniqueConstraint(
                 fields=["reviewer", "business_user"],
@@ -56,7 +48,4 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        """
-        Lesbare Darstellung für Admin und Debugging.
-        """
         return f"Review {self.id}: {self.reviewer_id} -> {self.business_user_id} ({self.rating})"

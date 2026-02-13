@@ -9,24 +9,25 @@ from rest_framework.filters import OrderingFilter
 
 class ReviewViewSet(ModelViewSet):
     """
-    ViewSet für Reviews (CRUD).
-
+    ViewSet for Reviews (CRUD).
+    
     Features:
-    - Auth erforderlich (IsAuthenticated)
-    - Zusätzliche Regeln über ReviewPermission (z.B. wer updaten/löschen darf)
-    - Keine Pagination (pagination_class = None)
-    - Filterung via ReviewFilter:
+    - Authentication required (IsAuthenticated)
+    - Additional rules enforced via ReviewPermission
+      (e.g., who may update or delete)
+    - No pagination (pagination_class = None)
+    - Filtering via ReviewFilter:
         - business_user_id
         - reviewer_id
-    - Ordering:
+    - Ordering support:
         - updated_at
         - rating
-      Default: neueste zuerst (-updated_at)
-
-    Create-Verhalten:
-    - reviewer wird serverseitig aus request.user gesetzt (perform_create)
-    """
-
+      Default: newest first (-updated_at)
+    
+    Create behavior:
+    - reviewer is set server-side from request.user
+      (via perform_create)    """
+    
     queryset = Review.objects.all()
     serializer_class = ReviewListSerializer
     pagination_class = None
@@ -39,9 +40,4 @@ class ReviewViewSet(ModelViewSet):
     ordering = ["-updated_at"]
 
     def perform_create(self, serializer):
-        """
-        Setzt den Reviewer automatisch auf den eingeloggten User.
-
-        Dadurch kann der Client das Feld `reviewer` nicht fälschen.
-        """
         serializer.save(reviewer=self.request.user)

@@ -11,17 +11,17 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 
 class OfferViewSet(ModelViewSet):
     """
-    ViewSet für Offers (CRUD).
+    ViewSet for Offers (CRUD).
 
     Features:
-    - Auth erforderlich (IsAuthenticated)
+    - Authentication required (IsAuthenticated)
     - Pagination via OfferPagination
-    - Suche über Titel/Beschreibung
-    - Ordering (z.B. updated_at, min_price)
-    - Query-Parameter-Filter:
-        - creator_id: Offers eines bestimmten Users
-        - min_price: minimaler Paketpreis >= X
-        - max_delivery_time: minimale Lieferzeit <= X
+    - Search by title/description
+    - Ordering (e.g., updated_at, min_price)
+    - Query parameter filters:
+        - creator_id: offers created by a specific user
+        - min_price: minimum package price >= X
+        - max_delivery_time: minimum delivery time <= X
     """
 
     queryset = Offer.objects.all()
@@ -30,7 +30,6 @@ class OfferViewSet(ModelViewSet):
     pagination_class = OfferPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
 
-    # SearchFilter erwartet Feldnamen (Lookups macht DRF intern)
     search_fields = ["title", "description"]
 
     ordering_fields = ["updated_at", "min_price"]
@@ -38,10 +37,10 @@ class OfferViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         """
-        Wählt je nach Action den passenden Serializer.
-        - create/update/partial_update: Nested input (Details)
-        - retrieve: detaillierter Output
-        - list: kompakter Output mit Aggregationen
+        Selects the appropriate serializer depending on the action:
+        - create/update/partial_update: nested input (details included)
+        - retrieve: detailed output
+        - list: compact output with aggregations
         """
         if self.action in ["create", "update", "partial_update"]:
             return OfferSerializerPostPatch
@@ -51,7 +50,8 @@ class OfferViewSet(ModelViewSet):
 
     def get_queryset(self):
         """
-        Annotiert Aggregationen für Filtering/Ordering und wendet Query-Param-Filter an.
+        Adds aggregation annotations for filtering/ordering
+        and applies query parameter filters.
         """
         queryset = super().get_queryset()
 
@@ -59,7 +59,6 @@ class OfferViewSet(ModelViewSet):
         min_price = self.request.query_params.get("min_price")
         max_delivery_time = self.request.query_params.get("max_delivery_time")
 
-        # Aggregationen DB-seitig (für Ordering/Filtering)
         queryset = queryset.annotate(
             min_price=Min("details__price"),
             min_delivery_time=Min("details__delivery_time_in_days"),
@@ -68,7 +67,7 @@ class OfferViewSet(ModelViewSet):
         return self._apply_filters(queryset, creator_id, min_price, max_delivery_time)
 
     def _apply_filters(self, queryset, creator_id, min_price, max_delivery_time):
-        """Wendet optionale Query-Parameter-Filter an."""
+        """Applies optional query parameter filters."""
         if creator_id:
             queryset = queryset.filter(user=creator_id)
 
@@ -79,11 +78,12 @@ class OfferViewSet(ModelViewSet):
             queryset = queryset.filter(min_delivery_time__lte=max_delivery_time)
 
         return queryset
-    
+
+
 class OfferdetailSingleView(RetrieveAPIView):
     """
-    Liefert ein einzelnes OfferDetail anhand der ID.
-    Wird v.a. über Hyperlinks aus OfferSerializer referenziert.
+    Returns a single OfferDetail by its ID.
+    Primarily referenced via hyperlinks from OfferSerializer.
     """
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer

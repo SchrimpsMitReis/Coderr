@@ -4,12 +4,11 @@ from general_app.api.views import BaseInfoView
 
 
 """
-General API-Endpunkte.
+General API endpoints.
 
-Enthält systemweite Informationen,
-die keiner spezifischen Business-App zugeordnet sind.
+Provides system-level information
+that is not bound to a specific application domain.
 """
-
 urlpatterns = [
     path(
         'base-info/',

@@ -8,12 +8,11 @@ from reviews_app.models import Review
 
 class ReviewPermission(BasePermission):
     """
-    Regeln:
-    - LIST/RETRIEVE: nur authenticated
-    - CREATE (POST): nur customer
-    - PATCH/PUT: nur customer, dem der Review gehört (reviewer)
-    - DELETE: nur customer, dem der Review gehört (reviewer)
-    """
+    Rules:
+    - LIST / RETRIEVE: authenticated users only
+    - CREATE (POST): customer users only
+    - PATCH / PUT: only the customer who owns the review (reviewer)
+    - DELETE: only the customer who owns the review (reviewer)    """
 
     message = "Keine Berechtigung für diese Aktion."
 

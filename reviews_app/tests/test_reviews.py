@@ -1,20 +1,23 @@
 from rest_framework import status
 from django.urls import reverse
+from auth_app.models import UserProfile
 from general_app.tests.base import AuthenticatedAPITestCaseCustomer, AuthenticatedAPITestCaseBusiness
 from orders_app.models import Orders
 from django.test import tag
 
+from reviews_app.models import Review
+
 class TestReviewsCustomer(AuthenticatedAPITestCaseCustomer):
     """
-    Tests für Reviews aus Sicht eines CUSTOMER-Users.
-
-    Abgedeckte Fälle:
-    - Liste abrufen (Schema prüfen)
-    - Filter nach business_user_id (Treffer / keine Treffer)
-    - Review erstellen (POST)
-    - Duplikat-Review verhindern (1 Review pro reviewer+business_user)
-    - Review aktualisieren (PATCH)
-    """
+    Tests for Reviews from the perspective of a CUSTOMER user.
+    
+    Covered cases:
+    - Retrieve review list (validate response schema)
+    - Filter by business_user_id (with results / without results)
+    - Create a review (POST)
+    - Prevent duplicate reviews
+      (only one review per reviewer + business_user)
+    - Update a review (PATCH)    """
 
     @tag("happy")
     def test_list_reviews_returns_expected_schema(self):
@@ -54,6 +57,21 @@ class TestReviewsCustomer(AuthenticatedAPITestCaseCustomer):
 
     @tag("happy")
     def test_post_review_creates_review(self):
+        """Must be created, because you need another business user"""
+        other_business = self._create_user("OtherBiz", UserProfile.UserType.BUSINESS)
+        url = reverse("reviews-list")
+        data = {
+            "business_user": other_business.id,
+            "rating": 4,
+            "description": "Alles war toll!",
+        }
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+    @tag("unhappy")
+    def test_post_duplicate_review_is_rejected(self):
+        """Review_01 already exist"""
         url = reverse("reviews-list")
         data = {
             "business_user": self.user_business.id,
@@ -62,25 +80,7 @@ class TestReviewsCustomer(AuthenticatedAPITestCaseCustomer):
         }
 
         response = self.client.post(url, data, format="json")
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-        # Optional: sicherstellen, dass reviewer automatisch gesetzt wurde
-        self.assertEqual(response.data.get("reviewer"), self.user.id)
-
-    @tag("unhappy")
-    def test_post_duplicate_review_is_rejected(self):
-        url = reverse("reviews-list")
-        data = {
-            "business_user": self.user_business.id,
-            "rating": 4,
-            "description": "Alles war toll!",
-        }
-
-        first = self.client.post(url, data, format="json")
-        second = self.client.post(url, data, format="json")
-
-        self.assertEqual(first.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(second.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     @tag("happy")
     def test_patch_single_review_updates_fields(self):

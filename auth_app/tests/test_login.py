@@ -12,25 +12,26 @@ from general_app.tests.base import UnauthenticatedAPITestCase
 
 class LoginTestHappy(UnauthenticatedAPITestCase):
     """
-    Happy-Path Tests für den Login-Endpoint.
+    Happy-path tests for the login endpoint.
 
-    Erwartetes Verhalten:
-    - Korrekte Credentials führen zu HTTP 200.
-    - Response enthält Token und User-Daten.
+    Expected behavior:
+    - Valid credentials result in HTTP 200.
+    - The response contains the authentication token and user data.
     """
 
     def setUp(self):
         """
-        Erstellt vor jedem Test einen gültigen User
-        mit bekanntem Passwort.
+        Creates a valid user with a known password
+        before each test.
         """
         super().setUp()
         self.user = self._create_user()
 
-    @tag('happy')
+    @tag("happy")
     def test_user_login(self):
         """
-        Prüft, ob sich ein User mit gültigen Credentials einloggen kann.
+        Verifies that a user can successfully log in
+        using valid credentials.
         """
         url = reverse("user-login")
 
@@ -45,27 +46,27 @@ class LoginTestHappy(UnauthenticatedAPITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        # Überprüft, ob alle erwarteten Response-Felder vorhanden sind
         for key in ["token", "username", "email", "user_id"]:
             self.assertIn(key, response.data)
-    
+
 
 class LoginTestUnhappy(UnauthenticatedAPITestCase):
     """
-    Unhappy-Path Tests für den Login-Endpoint.
+    Unhappy-path tests for the login endpoint.
 
-    Erwartetes Verhalten:
-    - Falsches Passwort führt zu HTTP 400.
+    Expected behavior:
+    - An incorrect password results in HTTP 400.
     """
 
     def setUp(self):
         super().setUp()
         self.user = self._create_user()
 
-    @tag('unhappy')
+    @tag("unhappy")
     def test_user_login_wrong_password(self):
         """
-        Prüft, ob ein falsches Passwort korrekt abgewiesen wird.
+        Verifies that an incorrect password
+        is properly rejected.
         """
         url = reverse("user-login")
 

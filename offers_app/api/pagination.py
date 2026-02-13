@@ -3,14 +3,14 @@ from rest_framework.response import Response
 
 class OfferPagination(PageNumberPagination):
     """
-    Pagination-Klasse für Offer-Listenendpunkte.
+    Pagination class for offer list endpoints.
 
-    Eigenschaften:
-    - Standard-Seitengröße: 10
-    - Client darf Seitengröße über `?page_size=` überschreiben
-    - Maximal erlaubte Seitengröße: 100
+    Properties:
+    - Default page size: 10
+    - Client may override page size via `?page_size=`
+    - Maximum allowed page size: 100
 
-    Response-Format:
+    Response format:
     {
         "count": <int>,
         "next": <url|null>,
@@ -25,11 +25,12 @@ class OfferPagination(PageNumberPagination):
 
     def get_paginated_response(self, data):
         """
-        Baut die paginierte Antwort im gewünschten Standardformat.
+        Builds the paginated response using the standard response structure.
 
-        Hinweis:
-        - `count` ist die Gesamtanzahl aller Treffer (nicht nur der aktuellen Seite).
-        - `next`/`previous` sind Navigationslinks oder `None`.
+        Notes:
+        - `count` represents the total number of matching records
+          (not only those on the current page).
+        - `next` / `previous` contain navigation links or `None`.
         """
         return Response(
             {

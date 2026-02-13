@@ -7,14 +7,13 @@ from orders_app.models import Orders
 
 class TestOrdersBusiness(AuthenticatedAPITestCaseBusiness):
     """
-    Tests für Orders aus Sicht eines BUSINESS-Users.
+        Tests for Order endpoints from the perspective of a BUSINESS user.
 
-    Erwartung:
-    - BUSINESS darf keine Orders erstellen (POST) -> 403
-    - BUSINESS darf Status eigener Orders ändern -> 200
-    - DELETE ist nur staff/admin -> 403
-    """
-
+        Expected behavior:
+        - BUSINESS users are not allowed to create orders (POST) → 403
+        - BUSINESS users may update the status of their own orders → 200
+        - DELETE is restricted to staff/admin users → 403
+        """    
     def test_business_cannot_create_order(self):
         url = reverse("orders-list")
         response = self.client.post(
@@ -42,13 +41,13 @@ class TestOrdersBusiness(AuthenticatedAPITestCaseBusiness):
 
 class TestOrdersCustomer(AuthenticatedAPITestCaseCustomer):
     """
-    Tests für Orders aus Sicht eines CUSTOMER-Users.
+        Tests for Order endpoints from the perspective of a CUSTOMER user.
 
-    Erwartung:
-    - CUSTOMER darf Orders erstellen -> 201
-    - CUSTOMER darf Orders nicht patchen -> 403
-    - DELETE ist nur staff/admin -> 403
-    """
+        Expected behavior:
+        - CUSTOMER users may create orders → 201
+        - CUSTOMER users may not update orders → 403
+        - DELETE is restricted to staff/admin users → 403
+        """
 
     def test_customer_can_create_order(self):
         url = reverse("orders-list")
@@ -59,7 +58,6 @@ class TestOrdersCustomer(AuthenticatedAPITestCaseCustomer):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-        # Optional: Response-Struktur prüfen
         for key in ["id", "status", "customer_user", "business_user", "title", "revisions","delivery_time_in_days","price","features","offer_type","created_at"]:
             self.assertIn(key, response.data)
 

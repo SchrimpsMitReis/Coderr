@@ -10,12 +10,12 @@ from general_app.tests.base import UnauthenticatedAPITestCase
 
 class BaseInfoTest(UnauthenticatedAPITestCase):
     """
-    Tests für den BaseInfo-Endpoint.
+    Tests for the BaseInfo endpoint.
 
-    Erwartetes Verhalten:
-    - GET /base-info/ liefert HTTP 200
-    - Response enthält alle erwarteten Statistik-Felder
-    - Werte sind numerisch
+    Expected behavior:
+    - GET /base-info/ returns HTTP 200
+    - Response contains all expected statistic fields
+    - Values are numeric
     """
 
     @tag("happy")

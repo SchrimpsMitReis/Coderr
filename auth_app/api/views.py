@@ -10,24 +10,24 @@ from rest_framework import status
 
 class RegistrationView(APIView):
     """
-    Registriert einen neuen Benutzer.
+    Registers a new user.
 
-    - Zugriff: öffentlich (AllowAny)
-    - Erwartet: username, email, password, repeated_password, type
-    - Erstellt: User + UserProfile (im Serializer) und ein DRF Token
-    - Antwort (201): token, username, email, user_id
-    - Fehler (400): Validierungsfehler des Serializers
+    - Access: Public (AllowAny)
+    - Expects: username, email, password, repeated_password, type
+    - Creates: User + UserProfile (handled in serializer) and a DRF Token
+    - Response (201): token, username, email, user_id
+    - Error (400): Serializer validation errors
     """
 
     permission_classes = [AllowAny]
 
     def post(self, request):
         """
-        Erstellt einen Account und gibt ein Token zurück.
+        Creates a new account and returns an authentication token.
 
-        Hinweis:
-        - Validierung läuft im RegistrationSerializer (inkl. Passwortvergleich
-          und Eindeutigkeitschecks).
+        Note:
+        - Validation is handled inside RegistrationSerializer
+          (including password matching and uniqueness checks).
         """
         serializer = RegistrationSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -35,10 +35,13 @@ class RegistrationView(APIView):
         user = serializer.save()
         token = Token.objects.create(user=user)
 
-        return Response(self._build_auth_payload(user, token), status=status.HTTP_201_CREATED)
+        return Response(
+            self._build_auth_payload(user, token),
+            status=status.HTTP_201_CREATED
+        )
 
     def _build_auth_payload(self, user, token):
-        """Formatiert die Standard-Antwort für Auth-Responses."""
+        """Builds the standardized authentication response payload."""
         return {
             "token": token.key,
             "username": user.username,
@@ -49,19 +52,19 @@ class RegistrationView(APIView):
 
 class LoginView(APIView):
     """
-    Authentifiziert einen Benutzer und gibt sein Token zurück.
+    Authenticates a user and returns their authentication token.
 
-    - Zugriff: öffentlich (AllowAny)
-    - Erwartet: username, password
-    - Antwort (200): token, username, email, user_id
-    - Fehler (400): ungültige Credentials (aus LoginSerializer)
+    - Access: Public (AllowAny)
+    - Expects: username, password
+    - Response (200): token, username, email, user_id
+    - Error (400): Invalid credentials (raised by LoginSerializer)
     """
 
     permission_classes = [AllowAny]
 
     def post(self, request):
         """
-        Validiert Credentials und gibt das bestehende oder neue Token zurück.
+        Validates credentials and returns an authentication token.
         """
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -69,10 +72,13 @@ class LoginView(APIView):
         user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
 
-        return Response(self._build_auth_payload(user, token), status=status.HTTP_200_OK)
+        return Response(
+            self._build_auth_payload(user, token),
+            status=status.HTTP_200_OK
+        )
 
     def _build_auth_payload(self, user, token):
-        """Formatiert die Standard-Antwort für Auth-Responses."""
+        """Builds the standardized authentication response payload."""
         return {
             "token": token.key,
             "username": user.username,

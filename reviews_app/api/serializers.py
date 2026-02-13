@@ -6,16 +6,15 @@ from reviews_app.models import Review
 
 class ReviewListSerializer(ModelSerializer):
     """
-    Serializer für Reviews (List/Create-geeignet).
-
-    Felder:
-    - reviewer ist read-only und wird typischerweise aus `request.user` gesetzt
-      (z.B. in perform_create im View oder im Serializer.create()).
-
-    Validierung:
-    - Beim Erstellen (instance is None) wird geprüft, ob der aktuelle User
-      den gleichen business_user bereits bewertet hat (1 Review pro Kombination).
-    """
+    Serializer for Reviews (suitable for list and create operations).
+    
+    Fields:
+    - reviewer is read-only and is typically set automatically from `request.user`
+      (e.g., in perform_create within the view or inside serializer.create()).
+    
+    Validation:
+    - On creation (instance is None), the serializer checks whether the current user
+      has already reviewed the same business_user (one review per reviewer-business pair).    """
 
     reviewer = PrimaryKeyRelatedField(read_only=True)
 
@@ -33,29 +32,25 @@ class ReviewListSerializer(ModelSerializer):
 
     def validate(self, attrs):
         """
-        Objektweite Validierung.
+        Object-level validation.
 
-        Regel:
-        - Ein Reviewer darf einen Business-User nur einmal bewerten.
-        - Die Prüfung wird nur beim Create ausgeführt (self.instance is None).
-        """
+        Rule:
+        - A reviewer may review a specific Business user only once.
+        - This validation is executed only during creation
+          (self.instance is None).
+        """        
         request = self.context.get("request")
         user = getattr(request, "user", None)
 
-        # Falls kein Request im Context steckt (z.B. Serializer manuell benutzt),
-        # keine request-basierte Validierung erzwingen.
         if not request or not user:
             return attrs
 
-        # Create-Fall: nur hier auf Duplicate prüfen
         if self.instance is None:
             business_user = attrs.get("business_user")
 
-            # business_user ist für Create erforderlich
             if business_user is None:
                 raise ValidationError({"business_user": ["This field is required."]})
 
-            # Duplicate-Check (ein Review pro reviewer+business_user)
             if Review.objects.filter(reviewer=user, business_user=business_user).exists():
                 raise ValidationError(
                     {"non_field_errors": ["Du hast diesen Anbieter bereits bewertet."]}

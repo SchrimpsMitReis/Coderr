@@ -10,17 +10,17 @@ from auth_app.models import UserProfile
 
 class RegistrationSerializer(serializers.Serializer):
     """
-    Serializer für die Benutzerregistrierung.
+    Serializer for user registration.
 
-    Verantwortlichkeiten:
-    - Validiert Registrierungsdaten (Username, E-Mail, Passwort).
-    - Prüft, ob Passwörter übereinstimmen.
-    - Stellt sicher, dass Username und E-Mail eindeutig sind.
-    - Erstellt einen neuen User sowie das zugehörige UserProfile.
+    Responsibilities:
+    - Validates registration data (username, email, password).
+    - Ensures both password fields match.
+    - Verifies username and email uniqueness.
+    - Creates a new User and the corresponding UserProfile.
 
-    Hinweis:
-    - `repeated_password` dient ausschließlich der Validierung
-      und wird nicht gespeichert.
+    Note:
+    - `repeated_password` is used only for validation
+      and is not stored in the database.
     """
 
     username = serializers.CharField(required=True)
@@ -32,41 +32,46 @@ class RegistrationSerializer(serializers.Serializer):
         choices=UserProfile.UserType.choices
     )
 
-    # Validate
+    # Validation
 
     def validate(self, attrs):
-        """Orchestriert die Registrierung-Validierung (objektweit)."""
+        """Orchestrates object-level registration validation."""
         self._validate_passwords_match(attrs)
         self._validate_username_unique(attrs["username"])
         self._validate_email_unique(attrs["email"])
         return attrs
 
     def _validate_passwords_match(self, attrs):
-        """Stellt sicher, dass Passwort und Wiederholung identisch sind."""
+        """Ensures the password and repeated password are identical."""
         if attrs["password"] != attrs["repeated_password"]:
-            raise serializers.ValidationError({"repeated_password": "passwords dont match"})
+            raise serializers.ValidationError(
+                {"repeated_password": "Passwords do not match."}
+            )
 
     def _validate_username_unique(self, username):
-        """Stellt sicher, dass der Username noch nicht vergeben ist."""
+        """Ensures the username is not already in use."""
         if User.objects.filter(username=username).exists():
-            raise serializers.ValidationError({"username": "already exists"})
+            raise serializers.ValidationError({"username": "Already exists."})
 
     def _validate_email_unique(self, email):
-        """Stellt sicher, dass die E-Mail noch nicht vergeben ist."""
+        """Ensures the email address is not already in use."""
         if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError({"email": "already exists"})
+            raise serializers.ValidationError({"email": "Already exists."})
 
-    # Method / Action
+    # Creation
 
     def create(self, validated_data):
-        """Erstellt User + UserProfile. `repeated_password` wird nicht gespeichert."""
+        """
+        Creates the User and corresponding UserProfile.
+        `repeated_password` is removed before persistence.
+        """
         validated_data.pop("repeated_password")
         user = self._create_user(validated_data)
         self._create_profile(user, validated_data)
         return user
 
     def _create_user(self, data):
-        """Erstellt den Django User (inkl. Passwort-Hashing via `create_user`)."""
+        """Creates the Django User instance (with password hashing)."""
         return User.objects.create_user(
             username=data["username"],
             email=data["email"],
@@ -74,38 +79,38 @@ class RegistrationSerializer(serializers.Serializer):
         )
 
     def _create_profile(self, user, data):
-        """Erstellt das zugehörige UserProfile."""
+        """Creates the associated UserProfile."""
         UserProfile.objects.create(
             user=user,
             email=data["email"],
             type=data.get("type", UserProfile.UserType.CUSTOMER),
         )
-    
 
 
 class LoginSerializer(serializers.Serializer):
     """
-    Validiert Login-Credentials über Django `authenticate`.
+    Validates login credentials using Django's `authenticate`.
 
-    Ergebnis:
-    - Bei Erfolg wird das User-Objekt in `attrs["user"]` abgelegt.
-    - Token-Erstellung erfolgt typischerweise in der View.
+    Result:
+    - On success, the authenticated User instance
+      is stored in `attrs["user"]`.
+    - Token generation is typically handled in the view.
     """
 
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        """Authentifiziert den User und hängt ihn an die validierten Daten."""
+        """Authenticates the user credentials."""
         user = self._authenticate(attrs["username"], attrs["password"])
         attrs["user"] = user
         return attrs
 
     def _authenticate(self, username, password):
-        """Wrapper um `authenticate` mit klarer Fehlermeldung."""
+        """Performs authentication and raises an error if invalid."""
         user = authenticate(username=username, password=password)
         if not user:
-            raise serializers.ValidationError({"detail": "Invalid credentials"})
+            raise serializers.ValidationError(
+                {"detail": "Invalid credentials."}
+            )
         return user
-
-

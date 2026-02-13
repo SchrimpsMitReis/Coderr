@@ -5,23 +5,20 @@ from auth_app.models import UserProfile
 
 class ProfileSerializer(ModelSerializer):
     """
-    Serializer für UserProfile inkl. ausgewählter User-Felder.
+    Serializer for UserProfile including selected User fields.
 
-    Ziel:
-    - Liefert Profil-Daten aus `UserProfile`.
-    - Mappt bestimmte Felder aus dem verknüpften Django `User`:
+    Purpose:
+    - Returns profile data from `UserProfile`.
+    - Exposes selected fields from the related Django `User` model:
         - username (read-only)
-        - first_name / last_name (schreibbar, werden auf User gespeichert)
+        - first_name / last_name (writable, persisted to the User model)
 
-    Hinweis:
-    - Durch `source="user.<field>"` werden User-Felder als "nested" Daten behandelt.
-      In `update()` schreiben wir diese Werte explizit auf `instance.user`.
+    Note:
+    - By using `source="user.<field>"`, User fields are treated as nested data.
+      In the `update()` method, these values are explicitly written
+      back to `instance.user`.
     """
-
-    # User.username nur anzeigen (nicht änderbar)
     username = CharField(source="user.username", read_only=True)
-
-    # User.first_name / last_name dürfen über das Profil-Endpoint gepflegt werden
     first_name = CharField(source="user.first_name", required=False, allow_blank=True)
     last_name = CharField(source="user.last_name", required=False, allow_blank=True)
 
@@ -41,18 +38,15 @@ class ProfileSerializer(ModelSerializer):
             "email",
             "created_at",
         ]
-        # Optional (wenn du es willst): user/created_at typischerweise read-only
-        # read_only_fields = ["user", "created_at", "username"]
 
     def update(self, instance, validated_data):
         """
-        Aktualisiert UserProfile und (optional) zugehörige User-Felder.
+        Updates the UserProfile and (optionally) related User fields.
 
-        Ablauf:
-        1) `user`-Daten aus validated_data herausziehen (falls vorhanden)
-        2) User-Attribute setzen und speichern
-        3) Restliche UserProfile-Felder via ModelSerializer aktualisieren
-        """
+        Workflow:
+        1) Extract `user` data from validated_data (if present)
+        2) Set and save User attributes
+        3) Update remaining UserProfile fields via the ModelSerializer        """
         user_data = validated_data.pop("user", None)
         if user_data:
             self._update_user(instance.user, user_data)
@@ -60,7 +54,6 @@ class ProfileSerializer(ModelSerializer):
         return super().update(instance, validated_data)
 
     def _update_user(self, user, user_data):
-        """Schreibt gemappte Felder (z.B. first_name/last_name) auf das User-Objekt."""
         for attr, value in user_data.items():
             setattr(user, attr, value)
         user.save()

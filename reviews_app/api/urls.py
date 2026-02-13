@@ -2,16 +2,15 @@ from rest_framework.routers import DefaultRouter
 from reviews_app.api.views import ReviewViewSet
 
 """
-Routing für Review-Endpunkte.
+Routing configuration for review endpoints.
 
-Registriert das ReviewViewSet unter:
-    /reviews/           -> List (GET), Create (POST)
-    /reviews/<pk>/      -> Retrieve (GET), Update (PUT/PATCH), Delete (DELETE)
+Registers the ReviewViewSet under:
+    /reviews/      → List (GET), Create (POST)
+    /reviews/<pk>/ → Retrieve (GET), Update (PUT/PATCH), Delete (DELETE)
 
-Router-Namenskonvention:
+Router naming convention:
     reviews-list
-    reviews-detail
-"""
+    reviews-detail"""
 
 router = DefaultRouter()
 router.register(

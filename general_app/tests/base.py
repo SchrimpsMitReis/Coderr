@@ -11,20 +11,20 @@ from reviews_app.models import Review
 
 class UnauthenticatedAPITestCase(APITestCase):
     """
-    Basis-TestCase, der eine konsistente Testdaten-Welt aufbaut.
+    Base test case that builds a consistent test-data environment.
 
-    Erstellt:
-    - 1 Business-User + Profil
-    - 1 Customer-User + Profil
-    - 2 Offers + OfferDetails (basic/standard/premium)
-    - 2 Orders (auf Basis eines OfferDetails)
-    - 1 Review
+    Creates:
+    - 1 business user + profile
+    - 1 customer user + profile
+    - 2 offers + offer details (basic/standard/premium)
+    - 2 orders (based on one offer detail)
+    - 1 review
 
-    Vorteil:
-    - Tests können ohne viel Boilerplate direkt auf vorhandene Objekte zugreifen.
+    Benefits:
+    - Tests can access pre-created objects without repetitive boilerplate.
 
-    Nachteil:
-    - Für sehr einfache Tests (z.B. login) werden mehr Daten erstellt als nötig.
+    Drawback:
+    - Very simple tests (e.g., login) create more data than strictly required.
     """
 
     DEFAULT_LOGIN_PASSWORD = "Password123!"
@@ -45,7 +45,7 @@ class UnauthenticatedAPITestCase(APITestCase):
         self.review_1 = self._create_review()
 
     def create_user_data(self):
-        """Payload für Registration-Tests."""
+        """Default payload for registration tests."""
         return {
             "username": "exampleUsername",
             "email": "example@mail.de",
@@ -54,10 +54,11 @@ class UnauthenticatedAPITestCase(APITestCase):
             "type": "customer",
         }
 
-    def _create_user(self, username = "exampleUsername", user_type = UserProfile.UserType.CUSTOMER):
+    def _create_user(self, username="exampleUsername", user_type=UserProfile.UserType.CUSTOMER):
         """
-        Erstellt einen Django User + UserProfile.
-        E-Mail wird aus dem Username abgeleitet, um Kollisionen zu vermeiden.
+        Creates a Django User and the corresponding UserProfile.
+
+        Email is derived from the username to avoid collisions across tests.
         """
         user = User.objects.create_user(
             username=username,
@@ -68,7 +69,7 @@ class UnauthenticatedAPITestCase(APITestCase):
         return user
 
     def _create_offers(self):
-        """Erstellt zwei Offers für den Business-User."""
+        """Creates two offers for the business user."""
         self.offer_1 = Offer.objects.create(
             user=self.user_business,
             title="Grafik",
@@ -83,7 +84,7 @@ class UnauthenticatedAPITestCase(APITestCase):
         )
 
     def _create_offer_details(self):
-        """Erstellt OfferDetails (basic/standard/premium) für beide Offers."""
+        """Creates offer details (basic/standard/premium) for both offers."""
         self.offer_detail_basic_1 = self._create_offer_detail(self.offer_1, 100, "basic")
         self.offer_detail_standard_1 = self._create_offer_detail(self.offer_1, 200, "standard")
         self.offer_detail_premium_1 = self._create_offer_detail(self.offer_1, 400, "premium")
@@ -93,7 +94,7 @@ class UnauthenticatedAPITestCase(APITestCase):
         self.offer_detail_premium_2 = self._create_offer_detail(self.offer_2, 400, "premium")
 
     def _create_offer_detail(self, offer, price, offer_type):
-        """Erstellt ein OfferDetail mit Standardwerten."""
+        """Creates an OfferDetail using standard default values."""
         return OfferDetail.objects.create(
             offer=offer,
             title="MedienUndSo",
@@ -105,7 +106,7 @@ class UnauthenticatedAPITestCase(APITestCase):
         )
 
     def _create_order(self):
-        """Erstellt eine Order aus dem basic Detail von offer_1."""
+        """Creates an order based on the basic detail of offer_1."""
         detail = self.offer_detail_basic_1
         return Orders.objects.create(
             customer_user=self.user_customer,
@@ -120,7 +121,7 @@ class UnauthenticatedAPITestCase(APITestCase):
         )
 
     def _create_review(self):
-        """Erstellt eine Review vom Customer für den Business."""
+        """Creates a review from the customer for the business user."""
         return Review.objects.create(
             business_user=self.user_business,
             reviewer=self.user_customer,
@@ -130,7 +131,7 @@ class UnauthenticatedAPITestCase(APITestCase):
 
 
 class AuthenticatedAPITestCaseCustomer(UnauthenticatedAPITestCase):
-    """BaseCase für Requests als authentifizierter Customer."""
+    """Base test case for requests made as an authenticated customer."""
 
     def setUp(self):
         super().setUp()
@@ -140,7 +141,7 @@ class AuthenticatedAPITestCaseCustomer(UnauthenticatedAPITestCase):
 
 
 class AuthenticatedAPITestCaseBusiness(UnauthenticatedAPITestCase):
-    """BaseCase für Requests als authentifizierter Business-User."""
+    """Base test case for requests made as an authenticated business user."""
 
     def setUp(self):
         super().setUp()

@@ -1,14 +1,12 @@
 from django.urls import include, path
 
 from auth_app.api.views import RegistrationView, LoginView
-
 """
-Authentifizierungs-Endpunkte der API.
+Authentication endpoints of the API.
 
-- POST /registration/ → Registriert einen neuen Benutzer.
-- POST /login/ → Authentifiziert Benutzer-Credentials.
+- POST /registration/ → Registers a new user.
+- POST /login/ → Authenticates user credentials.
 """
-
 urlpatterns = [
     path(
         'registration/',

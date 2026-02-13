@@ -8,11 +8,11 @@ from general_app.tests.base import UnauthenticatedAPITestCase
 
 class RegistrationHappyTest(UnauthenticatedAPITestCase):
     """
-    Happy-Path Tests für den Registration-Endpoint.
+    Happy-path tests for the registration endpoint.
 
-    Erwartetes Verhalten:
-    - Gültige Daten führen zu HTTP 201.
-    - Response enthält Auth-Token und User-ID.
+    Expected behavior:
+    - Valid data results in HTTP 201.
+    - The response contains an authentication token and user_id.
     """
 
     @tag("happy")
@@ -26,28 +26,29 @@ class RegistrationHappyTest(UnauthenticatedAPITestCase):
         self.assertIn("token", response.data)
         self.assertIn("user_id", response.data)
 
+
 class RegistrationUnhappyTest(UnauthenticatedAPITestCase):
     """
-    Unhappy-Path Tests für den Registration-Endpoint.
+    Unhappy-path tests for the registration endpoint.
 
-    Erwartetes Verhalten:
-    - Ungültige Daten führen zu HTTP 400.
-    - Response enthält feldbezogene Fehlermeldungen.
+    Expected behavior:
+    - Invalid input results in HTTP 400.
+    - The response contains field-level validation errors.
     """
 
     def _post_registration(self, data):
-        """Hilfsfunktion, damit Tests kurz und konsistent bleiben."""
+        """Helper method to keep tests concise and consistent."""
         url = reverse("user-registration")
         return self.client.post(url, data, format="json")
 
     @tag("unhappy")
     def test_missing_username_field_returns_400_and_username_error(self):
         """
-        Wenn 'username' fehlt (z.B. Tippfehler im Feldnamen),
-        muss die API das als Pflichtfeld-Fehler zurückgeben.
+        If 'username' is missing (e.g., due to a typo in the field name),
+        the API must return a required-field validation error.
         """
         data = {
-            "ushername": "exampleUsername",  # absichtlich falsch
+            "ushername": "exampleUsername",  # intentionally incorrect
             "email": "example@mail.de",
             "password": "examplePassword",
             "repeated_password": "examplePassword",
@@ -61,7 +62,7 @@ class RegistrationUnhappyTest(UnauthenticatedAPITestCase):
 
     @tag("unhappy")
     def test_different_passwords_returns_400_and_repeated_password_error(self):
-        """Wenn Passwörter nicht übereinstimmen, muss Validierung fehlschlagen."""
+        """Validation must fail if passwords do not match."""
         data = {
             "username": "exampleUsername",
             "email": "example@mail.de",
@@ -73,18 +74,17 @@ class RegistrationUnhappyTest(UnauthenticatedAPITestCase):
         response = self._post_registration(data)
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        # Optional, falls du das explizit zurückgibst:
         self.assertIn("repeated_password", response.data)
 
     @tag("unhappy")
     def test_invalid_type_returns_400_and_type_error(self):
-        """Ungültiger Choice-Wert für 'type' muss 400 liefern."""
+        """An invalid choice value for 'type' must return HTTP 400."""
         data = {
             "username": "exampleUsername",
             "email": "example@mail.de",
             "password": "examplePassword",
             "repeated_password": "examplePassword",
-            "type": "Mitarbeiter",
+            "type": "Employee",
         }
 
         response = self._post_registration(data)
@@ -94,7 +94,7 @@ class RegistrationUnhappyTest(UnauthenticatedAPITestCase):
 
     @tag("unhappy")
     def test_missing_type_returns_400_and_type_error(self):
-        """Wenn 'type' fehlt, muss ein Pflichtfeld-Fehler zurückkommen."""
+        """If 'type' is missing, a required-field validation error must be returned."""
         data = {
             "username": "exampleUsername",
             "email": "example@mail.de",
@@ -108,11 +108,11 @@ class RegistrationUnhappyTest(UnauthenticatedAPITestCase):
         self.assertIn("type", response.data)
 
     @tag("unhappy")
-    def test_register_same_user_twice_second_fails(self):
+    def test_register_same_user_twice_second_attempt_fails(self):
         """
-        Username/E-Mail müssen eindeutig sein.
-        Erstes Register: 201
-        Zweites Register mit gleichen Daten: 400
+        Username and email must be unique.
+        First registration: 201
+        Second registration with same data: 400
         """
         data = {
             "username": "exampleUsername",
@@ -127,5 +127,4 @@ class RegistrationUnhappyTest(UnauthenticatedAPITestCase):
 
         self.assertEqual(first.status_code, status.HTTP_201_CREATED)
         self.assertEqual(second.status_code, status.HTTP_400_BAD_REQUEST)
-        # Optional stärker:
         self.assertTrue("username" in second.data or "email" in second.data)

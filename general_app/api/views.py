@@ -9,25 +9,25 @@ from django.db.models import Count, Avg
 
 class BaseInfoView(APIView):
     """
-    Liefert aggregierte Plattform-Basisinformationen.
+    Returns aggregated platform-level statistics.
 
-    Enthaltene Kennzahlen:
-    - Anzahl Reviews
-    - Durchschnittliche Bewertung
-    - Anzahl Business-Profile
-    - Anzahl Angebote
+    Included metrics:
+    - Total number of reviews
+    - Average rating
+    - Number of business profiles
+    - Number of offers
     """
 
     permission_classes = [AllowAny]
 
     def get(self, request):
         """
-        Aggregiert systemweite Statistiken.
+        Aggregates system-wide statistics.
         """
 
         review_stats = Review.objects.aggregate(
             review_count=Count("id"),
-            average_rating=Avg("rating")
+            average_rating=Avg("rating"),
         )
 
         data = {
@@ -40,12 +40,11 @@ class BaseInfoView(APIView):
         return Response(data)
 
     def _get_business_profile_count(self):
-        """Zählt Profile mit Typ BUSINESS."""
+        """Returns the number of profiles with type BUSINESS."""
         return UserProfile.objects.filter(
             type=UserProfile.UserType.BUSINESS
         ).count()
 
     def _get_offer_count(self):
-        """Zählt alle Angebote."""
+        """Returns the total number of offers."""
         return Offer.objects.count()
-
