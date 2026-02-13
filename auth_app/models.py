@@ -4,20 +4,22 @@ from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
     """
-    Erweiterungsprofil zum Django `User`.
+    Extension profile for the Django `User` model.
 
-    Zweck:
-    - Trennt Auth-Daten (User: username/password) von Profildaten.
-    - Speichert den Profiltyp (Customer/Business) für Permissions/Business-Logik.
-    - Enthält optionale Stammdaten (Name, Telefon, Standort, Beschreibung, Arbeitszeiten).
+    Purpose:
+    - Separates authentication data (User: username/password)
+      from profile-specific data.
+    - Stores the profile type (Customer/Business) used for
+      permissions and business logic.
+    - Contains optional profile information
+      (name, phone, location, description, working hours).
 
-    Hinweis:
-    - `user` ist OneToOne -> genau ein Profil pro User.
-    - `type` wird typischerweise bei Registration gesetzt und später für Berechtigungen genutzt.
-    """
+    Notes:
+    - `user` is a OneToOne relationship → exactly one profile per User.
+    - `type` is typically set during registration and later used
+    for authorization and business rules.    """
 
     class UserType(models.TextChoices):
-        """Erlaubte Rollen/Profiltypen im System."""
         CUSTOMER = "customer", "Customer"
         BUSINESS = "business", "Business"
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -33,5 +35,4 @@ class UserProfile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        """Hilfreich im Django Admin und beim Debugging."""
         return f"{self.user.username} ({self.type})"
