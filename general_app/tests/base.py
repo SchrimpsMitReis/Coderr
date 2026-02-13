@@ -65,7 +65,18 @@ class UnauthenticatedAPITestCase(APITestCase):
             email=f"{username.lower()}@example.com",
             password=self.DEFAULT_LOGIN_PASSWORD,
         )
-        UserProfile.objects.create(user=user, email=user.email, type=user_type)
+        # UserProfile.objects.create(user=user, email=user.email, type=user_type)
+
+        profile, _ = UserProfile.objects.get_or_create(
+            user=user,
+            defaults={"email": user.email, "type": user_type},
+        )
+
+        # Falls das Profil schon vom Signal angelegt wurde, Typ/E-Mail ggf. setzen:
+        profile.email = user.email
+        profile.type = user_type
+        profile.save()
+
         return user
 
     def _create_offers(self):

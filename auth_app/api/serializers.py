@@ -79,13 +79,18 @@ class RegistrationSerializer(serializers.Serializer):
         )
 
     def _create_profile(self, user, data):
-        """Creates the associated UserProfile."""
-        UserProfile.objects.create(
+        """Creates or updates the associated UserProfile."""
+        profile, _ = UserProfile.objects.get_or_create(
             user=user,
-            email=data["email"],
-            type=data.get("type", UserProfile.UserType.CUSTOMER),
+            defaults={
+                "email": data["email"],
+                "type": data.get("type", UserProfile.UserType.CUSTOMER),
+            },
         )
 
+        profile.email = data["email"]
+        profile.type = data.get("type", UserProfile.UserType.CUSTOMER)
+        profile.save()
 
 class LoginSerializer(serializers.Serializer):
     """

@@ -15,7 +15,7 @@ class RegistrationHappyTest(UnauthenticatedAPITestCase):
     - The response contains an authentication token and user_id.
     """
 
-    @tag("happy")
+    @tag("focused")
     def test_register_user_returns_token_and_user_id(self):
         url = reverse("user-registration")
         data = self.create_user_data()
