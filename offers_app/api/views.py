@@ -2,12 +2,14 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from offers_app.api.pagination import OfferPagination
+from offers_app.api.permissions import OfferPermission
 from offers_app.models import Offer, OfferDetail
-from offers_app.api.serializers import OfferDetailSerializer, OfferSerializer, OfferSerializerPostPatch, OfferSingleSerializer
+from offers_app.api.serializers import OfferDetailSerializer, OfferFilterSerializer, OfferSerializer, OfferSerializerPostPatch, OfferSingleSerializer
 from rest_framework.generics import RetrieveAPIView,RetrieveUpdateDestroyAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 from django.db.models import Min, Max
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.exceptions import ValidationError
 
 class OfferViewSet(ModelViewSet):
     """
@@ -25,7 +27,7 @@ class OfferViewSet(ModelViewSet):
     """
 
     queryset = Offer.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [OfferPermission]
 
     pagination_class = OfferPagination
     filter_backends = [DjangoFilterBackend, OrderingFilter, SearchFilter]
@@ -35,6 +37,31 @@ class OfferViewSet(ModelViewSet):
     ordering_fields = ["updated_at", "min_price"]
     ordering = ["updated_at"]
 
+    def list(self, request, *args, **kwargs):
+        filter_serializer = OfferFilterSerializer(data=request.query_params)
+        filter_serializer.is_valid(raise_exception=True)
+
+        filters = filter_serializer.validated_data
+
+        queryset = self.get_queryset()
+
+        if "max_delivery_time" in filters:
+            queryset = queryset.filter(
+                details__delivery_time_in_days__lte=filters["max_delivery_time"]
+            )
+
+        if "min_price" in filters:
+            queryset = queryset.filter(
+                details__price__gte=filters["min_price"]
+            )
+
+        if "search" in filters:
+            queryset = queryset.filter(title__icontains=filters["search"])
+
+        self.queryset = queryset
+
+        return super().list(request, *args, **kwargs)
+    
     def get_serializer_class(self):
         """
         Selects the appropriate serializer depending on the action:
@@ -87,3 +114,4 @@ class OfferdetailSingleView(RetrieveAPIView):
     """
     queryset = OfferDetail.objects.all()
     serializer_class = OfferDetailSerializer
+    permission_classes = [IsAuthenticated]

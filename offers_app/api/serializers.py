@@ -260,6 +260,8 @@ class OfferSingleSerializer(serializers.ModelSerializer):
             "details",
             "min_price",
             "min_delivery_time",
+            "created_at",
+            "updated_at"
         ]
 
     def get_min_price(self, obj):
@@ -271,3 +273,9 @@ class OfferSingleSerializer(serializers.ModelSerializer):
         """Calculates the minimum delivery time across all OfferDetails."""
         delivery_time = obj.details.values_list("delivery_time_in_days", flat=True)
         return min(delivery_time) if delivery_time else None
+
+class OfferFilterSerializer(serializers.Serializer):
+    max_delivery_time = serializers.IntegerField(required=False, min_value=0)
+    min_price = serializers.IntegerField(required=False, min_value=0)
+    search = serializers.CharField(required=False, allow_blank=True)
+    page_size = serializers.IntegerField(required=False, min_value=1)

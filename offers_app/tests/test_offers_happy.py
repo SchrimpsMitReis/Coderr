@@ -4,7 +4,46 @@ from django.test import tag
 from rest_framework import status
 
 from django.urls import reverse
-from general_app.tests.base import AuthenticatedAPITestCaseCustomer, AuthenticatedAPITestCaseBusiness
+from general_app.tests.base import AuthenticatedAPITestCaseCustomer, AuthenticatedAPITestCaseBusiness, UnauthenticatedAPITestCase
+
+
+class TestOffersNotAuthenticated(UnauthenticatedAPITestCase):
+    @tag("happy")
+    def test_get_list_offers(self):
+        url = reverse("offers-list")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self._assert_pagination_schema(response.data)
+        self._assert_offer_list_schema(response.data["results"])
+
+    @tag("focused")
+    def test_get_list_max_delivery_time_bad_request(self):
+        url = reverse('offers-list')
+        response = self.client.get(url, {"max_delivery_time" : 'test'})
+        self.assertAlmostEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+    def _assert_pagination_schema(self, data):
+        """Prüft Standard-Pagination-Felder."""
+        for key in ["count", "next", "previous", "results"]:
+            self.assertIn(key, data)
+
+    def _assert_offer_list_schema(self, results):
+        """Prüft Schema der Offer-Objekte in der List-Response."""
+        for offer in results:
+            for key in [
+                "user", "title", "image", "description",
+                "details", "min_price", "min_delivery_time", "user_details"
+            ]:
+                self.assertIn(key, offer)
+
+            for detail in offer["details"]:
+                for key in ["id", "url"]:
+                    self.assertIn(key, detail)
+
+            for key in ["first_name", "last_name", "username"]:
+                self.assertIn(key, offer["user_details"])
+
 
 class TestOffersCustomer(AuthenticatedAPITestCaseCustomer):
     """
@@ -25,11 +64,75 @@ class TestOffersCustomer(AuthenticatedAPITestCaseCustomer):
         self._assert_offer_list_schema(response.data["results"])
 
     @tag("unhappy")
-    def test_post_offer_as_customer_fails(self):
-        url = reverse("offers-list")
-        response = self.client.post(url, self._offer_payload(), format="json")
+    def test_patch_wrong_user_type(self):
+        url = reverse("offers-detail", kwargs={"pk": self.offer_1.id})
+        data = {
+            "title": "Updated Grafikdesign-Paket",
+            "details": [
+                {
+                    "title": "Basic Design Updated",
+                    "revisions": 3,
+                    "delivery_time_in_days": 6,
+                    "price": 120,
+                    "features": [
+                        "Logo Design",
+                        "Flyer"
+                    ],
+                    "offer_type": "basic"
+                }
+            ]
+        }
+        response = self.client.patch(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+    @tag("unhappy")
+    def test_post_wrong_user_type(self):
+        url = reverse("offers-list")
+        data = {
+            "title": "Grafikdesign-Paket",
+            "image": None,
+            "description": "Ein umfassendes Grafikdesign-Paket für Unternehmen.",
+            "details": [
+                {
+                    "title": "Basic Design",
+                    "revisions": 2,
+                    "delivery_time_in_days": 5,
+                    "price": 100,
+                    "features": [
+                        "Logo Design",
+                        "Visitenkarte"
+                    ],
+                    "offer_type": "basic"
+                },
+                {
+                    "title": "Standard Design",
+                    "revisions": 5,
+                    "delivery_time_in_days": 7,
+                    "price": 200,
+                    "features": [
+                        "Logo Design",
+                        "Visitenkarte",
+                        "Briefpapier"
+                    ],
+                    "offer_type": "standard"
+                },
+                {
+                    "title": "Premium Design",
+                    "revisions": 10,
+                    "delivery_time_in_days": 10,
+                    "price": 500,
+                    "features": [
+                        "Logo Design",
+                        "Visitenkarte",
+                        "Briefpapier",
+                        "Flyer"
+                    ],
+                    "offer_type": "premium"
+                }
+            ]
+        }
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def _offer_payload(self):
         """Standard-Payload für Offer-Erstellung."""
@@ -67,6 +170,7 @@ class TestOffersCustomer(AuthenticatedAPITestCaseCustomer):
 
             for key in ["first_name", "last_name", "username"]:
                 self.assertIn(key, offer["user_details"])
+
 
 class TestOffersBusiness(AuthenticatedAPITestCaseBusiness):
     """
@@ -111,7 +215,8 @@ class TestOffersBusiness(AuthenticatedAPITestCaseBusiness):
 
     @tag("happy")
     def test_get_offerdetail_single(self):
-        url = reverse("offerdetail-detail", kwargs={"pk": self.offer_detail_basic_1.id})
+        url = reverse("offerdetail-detail",
+                      kwargs={"pk": self.offer_detail_basic_1.id})
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
