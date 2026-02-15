@@ -1,6 +1,7 @@
-
+from django.contrib.auth import get_user_model
 from rest_framework.viewsets import ModelViewSet
 from django.db.models import Q
+from auth_app.api.signals import User
 from auth_app.models import UserProfile
 from orders_app.api.permissions import OrdersPermission
 from orders_app.api.serializers import OrderCountSerializer, OrderCreateSerializer, OrderSerializer, OrderUpdateSerializer
@@ -10,7 +11,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import generics
-
+from django.shortcuts import get_object_or_404
 
 class OrdersViewSet(ModelViewSet):
     """
@@ -79,7 +80,7 @@ class OrderCountView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
-
+    User = get_user_model()
     def get(self, request, pk):
         """
         Returns the order count for a specific Business user.
@@ -87,7 +88,7 @@ class OrderCountView(APIView):
         pk: business_user_id (User ID of the business).
         """
         searched_status, prefix = self._resolve_status_from_path(request.path)
-
+        user = get_object_or_404(User, pk=pk)
         count = Orders.objects.filter(
             business_user_id=pk,
             status=searched_status,

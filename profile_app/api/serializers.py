@@ -1,23 +1,9 @@
-from rest_framework.serializers import ModelSerializer,CharField
-
+from rest_framework.serializers import ModelSerializer, CharField, PrimaryKeyRelatedField
 from auth_app.models import UserProfile
 
 
 class ProfileSerializer(ModelSerializer):
-    """
-    Serializer for UserProfile including selected User fields.
-
-    Purpose:
-    - Returns profile data from `UserProfile`.
-    - Exposes selected fields from the related Django `User` model:
-        - username (read-only)
-        - first_name / last_name (writable, persisted to the User model)
-
-    Note:
-    - By using `source="user.<field>"`, User fields are treated as nested data.
-      In the `update()` method, these values are explicitly written
-      back to `instance.user`.
-    """
+    user = PrimaryKeyRelatedField(read_only=True)
     username = CharField(source="user.username", read_only=True)
     first_name = CharField(source="user.first_name", required=False, allow_blank=True)
     last_name = CharField(source="user.last_name", required=False, allow_blank=True)
@@ -37,8 +23,8 @@ class ProfileSerializer(ModelSerializer):
             "type",
             "email",
             "created_at",
-        ]
-
+        ]    
+    
     def update(self, instance, validated_data):
         """
         Updates the UserProfile and (optionally) related User fields.

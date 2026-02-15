@@ -27,6 +27,10 @@ class ProfileDetailView(RetrieveUpdateAPIView):
     permission_classes = [ProfilePermission]
     lookup_field = "pk"
 
+    def get(self, request, *args, **kwargs):
+        print(request)
+        return self.retrieve(request, *args, **kwargs)
+
 
 class CustomerListView(ListAPIView):
     """

@@ -1,19 +1,16 @@
-from rest_framework.permissions import BasePermission
-
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 class ProfilePermission(BasePermission):
-
     def has_permission(self, request, view):
-        # Alles braucht Auth
-        return request.user and request.user.is_authenticated
+        return bool(request.user and request.user.is_authenticated)
 
     def has_object_permission(self, request, view, obj):
-        # Nur Besitzer darf verändern
-        if view.action in ["update", "partial_update", "destroy"]:
-            return obj.user == request.user
-
-        # retrieve erlaubt für jeden authenticated
-        if view.action == "retrieve":
+        # GET/HEAD/OPTIONS erlaubt für jeden Authenticated
+        if request.method in SAFE_METHODS:
             return True
 
-        return True
+        # PATCH/PUT/DELETE nur Besitzer
+        if request.method == "PATCH":
+            return obj.user == request.user
+        
+    

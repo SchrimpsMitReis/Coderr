@@ -54,9 +54,6 @@ class OrdersPermission(BasePermission):
         if view.action == "create":
             return profile_type == UserProfile.UserType.CUSTOMER
 
-        if view.action in ["update", "partial_update"]:
-            return profile_type == UserProfile.UserType.BUSINESS
-
         return True
 
     def has_object_permission(self, request, view, obj):
