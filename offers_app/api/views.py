@@ -40,9 +40,7 @@ class OfferViewSet(ModelViewSet):
     def list(self, request, *args, **kwargs):
         filter_serializer = OfferFilterSerializer(data=request.query_params)
         filter_serializer.is_valid(raise_exception=True)
-
         filters = filter_serializer.validated_data
-
         queryset = self.get_queryset()
 
         if "max_delivery_time" in filters:

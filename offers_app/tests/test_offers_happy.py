@@ -16,7 +16,7 @@ class TestOffersNotAuthenticated(UnauthenticatedAPITestCase):
         self._assert_pagination_schema(response.data)
         self._assert_offer_list_schema(response.data["results"])
 
-    @tag("focused")
+    @tag("unhappy")
     def test_get_list_max_delivery_time_bad_request(self):
         url = reverse('offers-list')
         response = self.client.get(url, {"max_delivery_time" : 'test'})

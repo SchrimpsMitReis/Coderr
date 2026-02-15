@@ -1,3 +1,4 @@
+from django.test import tag
 from django.urls import reverse
 from rest_framework import status
 
@@ -20,7 +21,7 @@ class TestSingleProfileHappy(AuthenticatedAPITestCaseCustomer):
             "single-user-profile-info",
             kwargs={"pk": self.user_profile.id},
         )
-
+    @tag('happy')
     def test_get_single_profile_returns_expected_fields(self):
         """
         GET should return HTTP 200 and include all expected fields.
@@ -40,7 +41,7 @@ class TestSingleProfileHappy(AuthenticatedAPITestCaseCustomer):
         for field in expected_fields:
             self.assertIn(field, response.data)
             self.assertIsNotNone(response.data[field])
-
+    @tag('happy')
     def test_patch_single_profile_updates_fields(self):
         """
         PATCH should update the provided fields and return HTTP 200.
@@ -60,6 +61,12 @@ class TestSingleProfileHappy(AuthenticatedAPITestCaseCustomer):
 
         for key, value in data.items():
             self.assertEqual(response.data[key], value)
+
+    @tag('unhappy')
+    def test_delete_my_profile(self):
+        response = self.client.delete(self.url)
+        self.assertEqual(response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
 
 class TestUserListByTypeHappy(AuthenticatedAPITestCaseCustomer):
@@ -88,3 +95,4 @@ class TestUserListByTypeHappy(AuthenticatedAPITestCaseCustomer):
 
         for profile in response.data:
             self.assertEqual(profile["type"], UserProfile.UserType.CUSTOMER)
+

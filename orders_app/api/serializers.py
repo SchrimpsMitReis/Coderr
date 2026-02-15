@@ -36,9 +36,21 @@ class OrderSerializer(serializers.ModelSerializer):
             "offer_type",
             "status",
             "created_at",
+            "updated_at",
         ]
 
         read_only_fields = fields
+
+    def get_updated_at(self, obj):
+
+        if obj.updated_at and obj.created_at == obj.updated_at:
+            return ""
+        
+
+        if obj.updated_at:
+            return obj.updated_at.isoformat().replace("+00:00", "Z")
+
+        return ""
 
 
 class OrderUpdateSerializer(OrderSerializer):
